@@ -32,4 +32,10 @@ public class TextUtils {
             return result;
         }
     }
+    public static String getPagingParams(int threshold, int page){
+        String params =
+                "&paging[per]="+ threshold +
+                "&paging[page]=" + page;
+        return params;
+    }
 }

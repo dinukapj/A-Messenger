@@ -5,7 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,25 +20,40 @@ import com.androidquery.AQuery;
 import com.androidquery.callback.AjaxStatus;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.kaodim.messenger.R;
 import com.kaodim.messenger.adapters.ConversationsAdapter;
 import com.kaodim.messenger.models.ConversationModel;
 import com.kaodim.messenger.recievers.MessageReciever;
+import com.kaodim.messenger.tools.TextUtils;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Kanskiy on 11/10/2016.
  */
 
-public abstract class ConversationsActivity extends AppCompatActivity {
+public abstract class ConversationsActivity extends AppCompatActivity  implements SwipeRefreshLayout.OnRefreshListener  {
 
+
+    private final String TAG = getClass().getName();
+
+
+    private RecyclerView recyclerView;
+    private SwipeRefreshLayout mSwipeView;
     private AQuery aq;
-    private ArrayList<ConversationModel> mMessages;
-    private ConversationsAdapter mAdapter;
     private Context mContext;
     protected Gson gson;
-    private final String TAG = getClass().getName();
+    private final int MESSAGES_THRESHOLD = 10;
+    private int currentPage;
+    private ConversationsAdapter mAdapter;
+    private ArrayList<ConversationModel> mMessages;
+    private Boolean isLoading;
+    private int pastVisiblesItems, visibleItemCount, totalItemCount;
+
+
+
     private BroadcastReceiver mMessageReceiver = new MessageReciever() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -57,22 +76,78 @@ public abstract class ConversationsActivity extends AppCompatActivity {
         mContext = this;
         gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").create();
-
-        ListView lvMessages = (ListView) findViewById(R.id.lvMessages);
-        lvMessages.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        initSwipteRefreshLayout();
+        initRecyclerView();
+        isLoading = false;
+        currentPage = 0;
+//        if (getIntent().getStringExtra("msg") != "") {
+//            GcmMessageHelper.mMessageNumber = 1;
+//        }
+    }
+    private void initRecyclerView(){
+        recyclerView = (RecyclerView)findViewById(R.id.rvConversations);
+        final LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                if (mSwipeView.isRefreshing()) {
+                    return;
+                }
+                if (dy > 0) //check for scroll down
+                {
+                    visibleItemCount = layoutManager.getChildCount();
+                    totalItemCount = layoutManager.getItemCount();
+                    pastVisiblesItems = layoutManager.findFirstVisibleItemPosition();
+                    if (!isLoading) {
+                        if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) {
+                            isLoading = true;
+                            Log.v("...", "Last Item Wow !");
+                            getMessages(currentPage + 1);
+                            ((ConversationsAdapter) recyclerView.getAdapter()).updateFooter(true);
+                        }
+                    }
+                }
+            }
+        });
+        recyclerView.setAdapter(new ConversationsAdapter(this,new ArrayList<ConversationModel>(),new ConversationsAdapter.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(int position, ConversationModel message) {
+//                try {
+//                    GcmMessageHandler.removeMsgsNoti(message.getServiceQuotationId(), getApplicationContext());
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+
                 Intent intent = new Intent(mContext, getChatActivityChild());
                 intent.putExtra("extra_name", mMessages.get(position).getName());
                 intent.putExtra("extra_id", mMessages.get(position).getId());
                 intent.putExtra("extra_incomming_message_avatar", mMessages.get(position).getAvatar());
                 startActivity(intent);
             }
-        });
+        }));
+    }
+    private void initSwipteRefreshLayout(){
+        mSwipeView = (SwipeRefreshLayout)findViewById(R.id.swipeRefreshlayout);
+        mSwipeView.setOnRefreshListener(this);
+        mSwipeView.setColorSchemeColors(ContextCompat.getColor(this, R.color.colorAccent),ContextCompat.getColor(this,R.color.colorPrimary),ContextCompat.getColor(this,R.color.colorAccent));
+    }
 
-//        if (getIntent().getStringExtra("msg") != "") {
-//            GcmMessageHelper.mMessageNumber = 1;
-//        }
+    public void getMessages(int page) {
+        int progressBar=0;
+        if (((ConversationsAdapter)recyclerView.getAdapter()).getItemCount()<1){
+            progressBar = R.id.progressBar;
+        }
+        aq.progress(progressBar).ajax(getMessagesUrl(page), String.class, this, "callbackPerformGetMessage");
+    }
+
+    private String getMessagesUrl(int page)
+    {
+        String url =getConversationUrl()+ TextUtils.getPagingParams(MESSAGES_THRESHOLD, page);
+        return url;
     }
 
 
@@ -83,8 +158,6 @@ public abstract class ConversationsActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-
-
 
     private  void showBackButton(boolean shouldShowBackButton){
         if (!shouldShowBackButton){
@@ -98,49 +171,75 @@ public abstract class ConversationsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        updateMessageList();
+        mSwipeView.post(new Runnable() {
+            @Override
+            public void run() {
+                mSwipeView.setRefreshing(true);
+                refresh();
+            }
+        });
         registerReceiver(mMessageReceiver, new IntentFilter(MessageReciever.FILTER_MESSAGE_RECEIVER));
     }
-
-
-
     @Override
     protected void onPause() {
         super.onPause();
         unregisterReceiver(mMessageReceiver);
     }
-    private void updateMessageList(){
-        aq.ajax(getConversationUrl(), String.class, this, "callbackPerformGetMessage");
+
+
+    @Override
+    public void onRefresh() {
+        refresh();
+    }
+    private void refresh(){
+        if (isLoading){
+            aq.ajaxCancel();
+            isLoading=false;
+            ((ConversationsAdapter) recyclerView.getAdapter()).updateFooter(false);
+        }
+        getMessages(1);
     }
 
-    public void menuBackClicked(View view) {
-        onBackPressed();
+    private void updateMessageList(){
+        aq.ajax(getConversationUrl(), String.class, this, "callbackPerformGetMessage");
     }
 
     public void callbackPerformGetMessage(String url, String json, AjaxStatus status) {
         if (json != null) {
 
-            mMessages = fromJsonToConverstionModelArray(json);
-//            mMessages = jsonParser.fromJsonToConversationArray(json);
-            if (mMessages.size()==0){
-                aq.id(R.id.tvError).text(getString(R.string.messenger_no_conversations)).visibility(View.VISIBLE);
-                aq.id(R.id.lvMessages).visibility(View.INVISIBLE);
-            }else{
-                aq.id(R.id.lvMessages).visibility(View.VISIBLE);
-                aq.id(R.id.tvError).visibility(View.INVISIBLE);
-            }
+            ArrayList<ConversationModel> mMessages =fromJsonToConverstionModelArray(json);
+            if (mSwipeView.isRefreshing()){
+                ((ConversationsAdapter)recyclerView.getAdapter()).clear();
+                currentPage=1;
+                Log.d("callbackGetMessage", "refresh "+currentPage);
 
-            mAdapter = new ConversationsAdapter(mContext, mMessages);
-            aq.id(R.id.lvMessages).adapter(mAdapter);
+                if (mMessages.size() == 0) {
+                    aq.id(R.id.llNoMessages).visible();
+                    aq.id(R.id.tvNoItemsTitle).text("");
+                    aq.id(R.id.tvNoItemsText).text(getString(R.string.messenger_no_conversations));
+                }
+                else {
+                    aq.id(R.id.llNoMessages).gone();
+                }
+            }else{
+                if (mMessages.size()>0)
+                    currentPage++;
+                Log.d("callbackGetMessage", "load more "+currentPage);
+            }
+            ((ConversationsAdapter)recyclerView.getAdapter()).addViews(mMessages);
             Log.d("get messages result", json.toString());
         } else {
-            aq.id(R.id.tvError).text(getString(R.string.messenger_HTTP_RANDOM_ERROR)).visibility(View.VISIBLE);
-            aq.id(R.id.lvMessages).visibility(View.INVISIBLE);
+            aq.id(R.id.llNoMessages).visible();
+            aq.id(R.id.tvNoItemsTitle).text("");
+            aq.id(R.id.tvNoItemsText).text(getString(R.string.messenger_HTTP_RANDOM_ERROR));
             Log.d("get messages error", status.getError());
         }
+        ((ConversationsAdapter) recyclerView.getAdapter()).updateFooter(false);
+        mSwipeView.setRefreshing(false);
+        isLoading=false;
     }
 
-    //TODO Builder
+    //Here Builder
     public  static class Builder {
         private final Bundle args = new Bundle();
         Class<? extends ConversationsActivity> conversationActivityChild;
@@ -151,10 +250,6 @@ public abstract class ConversationsActivity extends AppCompatActivity {
             this.args.putBoolean("extra_should_show_back_button", shouldShowBackButton);
             return this;
         }
-//        public ConversationsActivity.Builder addConversationUrl(String conversationUrl){
-//            args.putString("extra_conversation_url", conversationUrl);
-//            return this;
-//        }
         public void show(Context context) {
             Log.d("ConversationsActivity", "show: showing ConversationsActivity");
             context.startActivity(this.intent(context));
