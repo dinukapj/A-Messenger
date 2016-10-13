@@ -1,0 +1,15 @@
+<resources>
+    <string name="messenger_title_conversation_activity">Conversations</string>
+    <string name="messenger_no_conversations">No conversations</string>
+    <string name="messenger_HTTP_RANDOM_ERROR">Error</string>
+
+    <string name="messenger_type_here">Type here ...</string>
+    <string name="messenger_file_preview">File preview</string>
+    <string name="messenger_no_camera">No camera detected</string>
+    <string name="messenger_select_file">Select File</string>
+    <string name="messenger_file_not_supported">File format is not supported</string>
+    <string name="messenger_file_not_found">File not found</string>
+    <string name="messenger_unable_to_retrieve_file_required">Unable to retrieve required file.</string>
+    <string name="messenger_cancel">Cancel</string>
+    <string name="messenger_send">send</string>
+</resources>
