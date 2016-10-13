@@ -25,6 +25,7 @@ import com.kaodim.messenger.models.MessageModel;
 import com.kaodim.messenger.tools.Blur;
 import com.kaodim.messenger.tools.CircleTransform;
 import com.kaodim.messenger.tools.FileHelper;
+import com.kaodim.messenger.tools.RoundedCornersTransform;
 import com.kaodim.messenger.tools.TextUtils;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
@@ -205,7 +206,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
                                         .load(message.getContent().getAttachment().getOriginal())
                                         .resize(800, 600)
                                         .centerCrop()
-                                        .transform(new CircleTransform())
+                                        .transform(new RoundedCornersTransform(20,0))
                                         .placeholder(aq.id(R.id.ivAttachmentImage).getImageView().getDrawable())
                                         .into(aq.id(R.id.ivAttachmentImage).getImageView());
                             }
@@ -215,6 +216,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
                                         .load(message.getContent().getAttachment().getOriginal())
                                         .resize(1000, 1000)
                                         .centerCrop()
+                                        .transform(new RoundedCornersTransform(20,0))
                                         .placeholder(aq.id(R.id.ivAttachmentImage).getImageView().getDrawable())
                                         .into(aq.id(R.id.ivAttachmentImage).getImageView());
                                 Log.d("Picasso", "error loading thumb: " + message.getContent().getAttachment().getThumb());

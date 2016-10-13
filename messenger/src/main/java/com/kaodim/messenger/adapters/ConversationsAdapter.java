@@ -59,8 +59,6 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
         };
     }
 
-
-
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public View container;
         public ViewHolder(View container) {
