@@ -115,7 +115,7 @@ public abstract class ConversationsActivity extends AppCompatActivity  implement
         recyclerView.setAdapter(new ConversationsAdapter(this,new ArrayList<ConversationModel>(),new ConversationsAdapter.OnItemClickListener() {
 
             @Override
-            public void onItemClick(int position, ConversationModel message) {
+            public void onItemClick(int position, ConversationModel conversation) {
 //                try {
 //                    GcmMessageHandler.removeMsgsNoti(message.getServiceQuotationId(), getApplicationContext());
 //                }catch (Exception e){
@@ -123,9 +123,9 @@ public abstract class ConversationsActivity extends AppCompatActivity  implement
 //                }
 
                 Intent intent = new Intent(mContext, getChatActivityChild());
-                intent.putExtra("extra_name", mMessages.get(position).getName());
-                intent.putExtra("extra_id", mMessages.get(position).getId());
-                intent.putExtra("extra_incomming_message_avatar", mMessages.get(position).getAvatar());
+                intent.putExtra("extra_name", conversation.getName());
+                intent.putExtra("extra_id", conversation.getId());
+                intent.putExtra("extra_incomming_message_avatar", conversation.getAvatar());
                 startActivity(intent);
             }
         }));
