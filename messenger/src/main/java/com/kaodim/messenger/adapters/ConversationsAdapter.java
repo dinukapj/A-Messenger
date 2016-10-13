@@ -16,6 +16,7 @@ import com.androidquery.AQuery;
 import com.kaodim.messenger.R;
 import com.kaodim.messenger.models.ConversationModel;
 import com.kaodim.messenger.tools.Blur;
+import com.kaodim.messenger.tools.CircleTransform;
 import com.kaodim.messenger.tools.TextUtils;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
@@ -124,22 +125,12 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
             aq.id(R.id.tvPostsCount).text("");
             aq.id(R.id.llNewMessagesCountBackground).visibility(View.GONE);
         }
-
-
         Picasso.with(mContetx)
                 .load(conversation.getAvatar())
                 .placeholder(R.drawable.ic_person_black_24dp)
-                .transform(blurTransformation)
-                .into(aq.id(R.id.ciProfileImage).getImageView(), new Callback() {
-                    @Override
-                    public void onSuccess() {
-                    }
-                    @Override
-                    public void onError() {
-                        Picasso.with(mContetx).load(R.drawable.ic_person_black_24dp).
-                                into(aq.id(R.id.ciProfileImage).getImageView());
-                    }
-                });
+                .transform(new CircleTransform())
+                .error(R.drawable.ic_person_black_24dp)
+                .into(aq.id(R.id.ciProfileImage).getImageView());
         aq.id(holder.container).clicked(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
