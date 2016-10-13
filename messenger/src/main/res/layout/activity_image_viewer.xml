@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+    <com.kaodim.kaodimuserapp.helpers.ZoomViewPager
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+    <TextView
+        android:id="@+id/tvCurrentPosition"
+        android:layout_width="match_parent"
+        android:layout_height="?actionBarSize"
+        android:background="@color/secondary_black"
+        android:textColor="@color/white"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        style="@style/Base.TextAppearance.AppCompat.Body1"
+        android:text="1/3"
+        />
+</RelativeLayout>

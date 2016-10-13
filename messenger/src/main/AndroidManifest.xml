@@ -7,6 +7,11 @@
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden|adjustResize" >
         </activity>
+        <activity android:name=".activities.ImageViewerActivity"
+            android:windowSoftInputMode="stateHidden"
+            android:theme="@style/ImageViewTheme"
+            android:configChanges="orientation|keyboardHidden|screenSize">
+        </activity>
         </application>
 
 </manifest>

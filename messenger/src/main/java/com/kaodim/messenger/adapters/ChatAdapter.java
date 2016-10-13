@@ -20,6 +20,7 @@ import com.androidquery.AQuery;
 import com.androidquery.callback.AjaxCallback;
 import com.androidquery.callback.AjaxStatus;
 import com.kaodim.messenger.R;
+import com.kaodim.messenger.activities.ImageViewerActivity;
 import com.kaodim.messenger.models.ChatModel;
 import com.kaodim.messenger.models.MessageModel;
 import com.kaodim.messenger.tools.Blur;
@@ -225,10 +226,10 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
                 aq.id(R.id.ivAttachmentImage).clicked(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-//                        Intent intent = new Intent(mContext, ImageViewerActivity.class);
-//                        intent.putExtra("currentPosition", 0);
-//                        intent.putStringArrayListExtra("photos", new ArrayList<String>(Arrays.asList(new String[]{ message.getContent().getAttachment().getOriginal()})));
-//                        mContext.startActivity(intent);
+                        Intent intent = new Intent(mContext, ImageViewerActivity.class);
+                        intent.putExtra("currentPosition", 0);
+                        intent.putStringArrayListExtra("photos", new ArrayList<String>(Arrays.asList(new String[]{ message.getContent().getAttachment().getOriginal()})));
+                        mContext.startActivity(intent);
                     }
                 });
                 break;
@@ -237,7 +238,6 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
                 break;
         }
     }
-
     private void openFile(File file, Context context, String url){
         final String fileExtension = FileHelper.getFileExtensionFromString(url);
         String mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension);

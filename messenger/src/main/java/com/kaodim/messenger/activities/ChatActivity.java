@@ -35,7 +35,7 @@ import java.util.Map;
  * Created by Kanskiy on 12/10/2016.
  */
 
-public abstract class ChatActivity extends AppCompatActivity {
+public abstract class ChatActivity extends BaseBackButtonActivity {
     private AQuery aq;
     private ChatAdapter adapter;
     private RecyclerView rvMessageThread;
@@ -58,7 +58,6 @@ public abstract class ChatActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
-        configureActionBar();
         conversationId = getIntent().getStringExtra("extra_id");
         incommingMessageAvatar = getIntent().getStringExtra("extra_incomming_message_avatar");
         String title = getIntent().getStringExtra("extra_name");
@@ -201,19 +200,4 @@ public abstract class ChatActivity extends AppCompatActivity {
         Picasso.with(this).cancelTag(this);
     }
 
-
-    //Here ActionBar
-    private void configureActionBar(){
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(false);
-        getSupportActionBar().setDisplayShowTitleEnabled(true);
-        getSupportActionBar().setDisplayUseLogoEnabled(false);
-    }
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
-        }
-        return super.onOptionsItemSelected(item);
-    }
 }
