@@ -1,7 +1,9 @@
 package com.kaodim.messenger.activities;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -17,6 +19,7 @@ import com.google.gson.GsonBuilder;
 import com.kaodim.messenger.R;
 import com.kaodim.messenger.adapters.ConversationsAdapter;
 import com.kaodim.messenger.models.ConversationModel;
+import com.kaodim.messenger.recievers.MessageReciever;
 
 import java.util.ArrayList;
 
@@ -32,6 +35,14 @@ public abstract class ConversationsActivity extends AppCompatActivity {
     private Context mContext;
     protected Gson gson;
     private final String TAG = getClass().getName();
+    private BroadcastReceiver mMessageReceiver = new MessageReciever() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            updateMessageList();
+        }
+    };
+
+
 
     protected abstract ArrayList<ConversationModel> fromJsonToConverstionModelArray(String json);
     protected abstract String getConversationUrl();
@@ -88,7 +99,7 @@ public abstract class ConversationsActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         updateMessageList();
-//        registerReceiver(mMessageReceiver, new IntentFilter(GcmMessageHelper.FILTER_MESSAGE_RECEIVER));
+        registerReceiver(mMessageReceiver, new IntentFilter(MessageReciever.FILTER_MESSAGE_RECEIVER));
     }
 
 
@@ -96,7 +107,7 @@ public abstract class ConversationsActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-//        unregisterReceiver(mMessageReceiver);
+        unregisterReceiver(mMessageReceiver);
     }
     private void updateMessageList(){
         aq.ajax(getConversationUrl(), String.class, this, "callbackPerformGetMessage");
