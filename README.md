@@ -1,4 +1,4 @@
-# A-Messenger
+# A-Messenger - The library is a template used to build a chat for Android
 ### Installation
 
   Import the following line into your Module `build.gradle`
