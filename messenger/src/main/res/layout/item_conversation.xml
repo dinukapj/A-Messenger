@@ -23,7 +23,7 @@
                 android:id="@+id/ciProfileImage"
                 android:layout_width="46dp"
                 android:layout_height="46dp"
-                app:srcCompat="@drawable/ic_person_black_24dp"
+                app:srcCompat="@drawable/ic_vect_default_avatar"
                 />
             <ProgressBar
                 android:id="@+id/pbProfileImage"

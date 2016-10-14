@@ -75,8 +75,6 @@ public abstract class ChatActivity extends BaseBackButtonActivity {
         aq.id(R.id.llSendNewMessage).clicked(this, "clickedSendMessage");
         aq.id(R.id.llOpenCamera).clicked(this, "onllOpenCameraClicked");
         aq.id(R.id.llattach).clicked(this, "onllAttachClicked");
-
-//        GcmMessageHelper.removeMsgsNoti(mQuotationId, getApplicationContext());
     }
 
     public void onllOpenCameraClicked(){
@@ -137,8 +135,8 @@ public abstract class ChatActivity extends BaseBackButtonActivity {
         String content =  aq.id(R.id.etNewMessage).getText().toString();
         if (TextUtils.isEmpty(content)){return;}
         sendPost(content,null, 0);
-
     }
+
     public void sendPost(String content, File attachment, int progress){
         Map<String, Object> params = new HashMap<String, Object>();
         if (!TextUtils.isEmpty(content)){
@@ -150,7 +148,6 @@ public abstract class ChatActivity extends BaseBackButtonActivity {
         aq.progress(progress).ajax(getMessageThreadURL(conversationId), params, String.class, this, "callbackPerformSendMessage");
     }
 
-
 //    }
 
     @Override
@@ -158,7 +155,6 @@ public abstract class ChatActivity extends BaseBackButtonActivity {
         super.onResume();
         updateMessageList();
         registerReceiver(mMessageReceiver, new IntentFilter(MessageReciever.FILTER_MESSAGE_RECEIVER));
-//        GcmMessageHelper.removeMsgsNoti(mQuotationId, getApplicationContext());
     }
     private void updateMessageList(){
         aq.ajax(getMessageThreadURL(conversationId), String.class, this, "callbackPerformGetThread");

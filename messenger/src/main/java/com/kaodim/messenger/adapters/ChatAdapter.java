@@ -8,7 +8,6 @@ import android.net.Uri;
 import android.os.Environment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
-import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,10 +20,8 @@ import com.androidquery.callback.AjaxCallback;
 import com.androidquery.callback.AjaxStatus;
 import com.kaodim.messenger.R;
 import com.kaodim.messenger.activities.ImageViewerActivity;
-import com.kaodim.messenger.models.ChatModel;
 import com.kaodim.messenger.models.MessageModel;
 import com.kaodim.messenger.tools.Blur;
-import com.kaodim.messenger.tools.CircleTransform;
 import com.kaodim.messenger.tools.FileHelper;
 import com.kaodim.messenger.tools.RoundedCornersTransform;
 import com.kaodim.messenger.tools.TextUtils;
@@ -119,7 +116,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
         if (getItemViewType(position) == TYPE_MESSAGE_SMBDY ){
             Picasso.with(mContext)
                     .load(smbdysAvatar)
-                    .placeholder(R.drawable.ic_person_black_24dp)
+                    .placeholder(R.drawable.ic_vect_default_avatar)
                     .transform(blurTransformation)
                     .into(aq.id(R.id.ciProfileImage).getImageView(), new Callback() {
                         @Override
@@ -127,7 +124,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
                         }
                         @Override
                         public void onError() {
-                            Picasso.with(mContext).load(R.drawable.ic_person_black_24dp).
+                            Picasso.with(mContext).load(R.drawable.ic_vect_default_avatar).
                                     into(aq.id(R.id.ciProfileImage).getImageView());
                         }
                     });

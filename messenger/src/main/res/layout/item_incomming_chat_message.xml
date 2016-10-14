@@ -31,7 +31,7 @@
                 android:id="@+id/ciProfileImage"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
-                app:srcCompat = "@drawable/ic_person_black_24dp"
+                app:srcCompat = "@drawable/ic_vect_default_avatar"
                 android:layout_alignParentTop="true"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true" />
