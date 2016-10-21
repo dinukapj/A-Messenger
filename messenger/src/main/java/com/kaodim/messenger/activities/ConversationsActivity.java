@@ -12,29 +12,22 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
 
 import com.androidquery.AQuery;
 import com.androidquery.callback.AjaxStatus;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import com.kaodim.messenger.R;
 import com.kaodim.messenger.adapters.ConversationsAdapter;
 import com.kaodim.messenger.models.ConversationModel;
 import com.kaodim.messenger.recievers.MessageReciever;
-import com.kaodim.messenger.tools.TextUtils;
+import com.kaodim.messenger.tools.AMessenger;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by Kanskiy on 11/10/2016.
  */
 
-public abstract class ConversationsActivity extends AppCompatActivity  implements SwipeRefreshLayout.OnRefreshListener  {
+public class ConversationsActivity extends AppCompatActivity  implements SwipeRefreshLayout.OnRefreshListener  {
 
 
     private final String TAG = getClass().getName();
@@ -44,38 +37,29 @@ public abstract class ConversationsActivity extends AppCompatActivity  implement
     private SwipeRefreshLayout mSwipeView;
     private AQuery aq;
     private Context mContext;
-    protected Gson gson;
-    private final int MESSAGES_THRESHOLD = 10;
     private int currentPage;
     private ConversationsAdapter mAdapter;
     private ArrayList<ConversationModel> mMessages;
     private Boolean isLoading;
     private int pastVisiblesItems, visibleItemCount, totalItemCount;
-
+    private String chatUrl;
 
 
     private BroadcastReceiver mMessageReceiver = new MessageReciever() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            updateMessageList();
+            refresh();
         }
     };
 
-
-
-    protected abstract ArrayList<ConversationModel> fromJsonToConverstionModelArray(String json);
-    protected abstract String getConversationUrl();
-    protected abstract Class<? extends ChatActivity> getChatActivityChild();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversations);
         setTitle(getString(R.string.messenger_title_conversation_activity));
-        showBackButton(getIntent().getBooleanExtra("extra_should_show_back_button", false));
+        showBackButton();
         aq = new AQuery(this);
         mContext = this;
-        gson = new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").create();
         initSwipteRefreshLayout();
         initRecyclerView();
         isLoading = false;
@@ -121,8 +105,7 @@ public abstract class ConversationsActivity extends AppCompatActivity  implement
 //                }catch (Exception e){
 //                    e.printStackTrace();
 //                }
-
-                Intent intent = new Intent(mContext, getChatActivityChild());
+                Intent intent = new Intent(mContext, ChatActivity.class);
                 intent.putExtra("extra_name", conversation.getName());
                 intent.putExtra("extra_id", conversation.getId());
                 intent.putExtra("extra_incomming_message_avatar", conversation.getAvatar());
@@ -130,25 +113,20 @@ public abstract class ConversationsActivity extends AppCompatActivity  implement
             }
         }));
     }
+
     private void initSwipteRefreshLayout(){
         mSwipeView = (SwipeRefreshLayout)findViewById(R.id.swipeRefreshlayout);
         mSwipeView.setOnRefreshListener(this);
         mSwipeView.setColorSchemeColors(ContextCompat.getColor(this, R.color.colorAccent),ContextCompat.getColor(this,R.color.colorPrimary),ContextCompat.getColor(this,R.color.colorAccent));
     }
-
     public void getMessages(int page) {
         int progressBar=0;
         if (((ConversationsAdapter)recyclerView.getAdapter()).getItemCount()<1){
             progressBar = R.id.progressBar;
         }
-        aq.progress(progressBar).ajax(getMessagesUrl(page), String.class, this, "callbackPerformGetMessage");
+        aq.progress(progressBar).ajax(AMessenger.getInstance().getConversationUrl(page), String.class, this, "callbackPerformGetMessage");
     }
 
-    private String getMessagesUrl(int page)
-    {
-        String url =getConversationUrl()+ TextUtils.getPagingParams(MESSAGES_THRESHOLD, page);
-        return url;
-    }
 
 
     @Override
@@ -159,10 +137,7 @@ public abstract class ConversationsActivity extends AppCompatActivity  implement
         return super.onOptionsItemSelected(item);
     }
 
-    private  void showBackButton(boolean shouldShowBackButton){
-        if (!shouldShowBackButton){
-            return;
-        }
+    private  void showBackButton(){
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(false);
         getSupportActionBar().setDisplayShowTitleEnabled(true);
@@ -200,14 +175,12 @@ public abstract class ConversationsActivity extends AppCompatActivity  implement
         getMessages(1);
     }
 
-    private void updateMessageList(){
-        aq.ajax(getConversationUrl(), String.class, this, "callbackPerformGetMessage");
-    }
 
     public void callbackPerformGetMessage(String url, String json, AjaxStatus status) {
+        Log.d(TAG, url);
         if (json != null) {
 
-            ArrayList<ConversationModel> mMessages =fromJsonToConverstionModelArray(json);
+            ArrayList<ConversationModel> mMessages = AMessenger.getInstance().toConversationModelArray(json);
             if (mSwipeView.isRefreshing()){
                 ((ConversationsAdapter)recyclerView.getAdapter()).clear();
                 currentPage=1;
@@ -241,22 +214,17 @@ public abstract class ConversationsActivity extends AppCompatActivity  implement
 
     //Here Builder
     public  static class Builder {
-        private final Bundle args = new Bundle();
-        Class<? extends ConversationsActivity> conversationActivityChild;
-        public Builder(Class<? extends ConversationsActivity> conversationActivityChild) {
-            this.conversationActivityChild = conversationActivityChild;
-        }
-        public ConversationsActivity.Builder showBackButton(boolean shouldShowBackButton) {
-            this.args.putBoolean("extra_should_show_back_button", shouldShowBackButton);
-            return this;
+        private  Bundle args;
+        public Builder() {
+            args  = new Bundle();
         }
         public void show(Context context) {
             Log.d("ConversationsActivity", "show: showing ConversationsActivity");
-            context.startActivity(this.intent(context));
+            context.startActivity(this.buildIntent(context));
         }
-        Intent intent(Context context) {
+        private Intent buildIntent(Context context) {
             Log.d("ConversationsActivity", "intent: creating Intent");
-            Intent intent = new Intent(context, conversationActivityChild);
+            Intent intent = new Intent(context, ConversationsActivity.class);
             intent.putExtras(this.args);
             return intent;
         }
