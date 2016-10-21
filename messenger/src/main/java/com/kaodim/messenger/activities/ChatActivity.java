@@ -48,10 +48,7 @@ public class ChatActivity extends BaseBackButtonActivity {
 
 
         if (savedInstanceState == null) {
-            ChatFragment chatFragment = ChatFragment.newInstance(conversationId,incommingMessageName,incommingMessageAvatar, chatUrl );
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.flContainer, chatFragment)
-                    .commit();
+            ChatFragment.newInstance(conversationId,incommingMessageName,incommingMessageAvatar).commit(getSupportFragmentManager());
         }
     }
 

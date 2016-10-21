@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -30,6 +31,7 @@ import com.kaodim.messenger.models.ChatModel;
 import com.kaodim.messenger.models.Message;
 import com.kaodim.messenger.models.MessageModel;
 import com.kaodim.messenger.recievers.MessageReciever;
+import com.kaodim.messenger.tools.AMessenger;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -65,6 +67,14 @@ public  class ChatFragment extends Fragment{
     }
 
 
+    public void commit(FragmentManager fragmentManager){
+        fragmentManager.beginTransaction()
+                .add(R.id.flContainer, this)
+                .commit();
+    }
+
+
+
     private BroadcastReceiver mMessageReceiver = new MessageReciever() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -72,14 +82,13 @@ public  class ChatFragment extends Fragment{
         }
     };
 
-    public static ChatFragment newInstance(String conversationId, String incommingMessageName, String incommingMessageAvatar, String url) {
+    public static ChatFragment newInstance(String conversationId, String incommingMessageName, String incommingMessageAvatar) {
         ChatFragment fragment = new ChatFragment();
         Bundle b = new Bundle();
         b.putSerializable("extra_chat_model_class", ChatModel.class );
         b.putString("extra_id",conversationId );
         b.putString("extra_name",incommingMessageName );
         b.putString("extra_incomming_message_avatar",incommingMessageAvatar );
-        b.putString("extra_chat_url",url);
         fragment.setArguments(b);
         return fragment;
     }
@@ -96,7 +105,7 @@ public  class ChatFragment extends Fragment{
             return rootView;
         }
 
-        url = b.getString("extra_chat_url");
+        url = AMessenger.getInstance().getChatUrl(conversationId);
         if (android.text.TextUtils.isEmpty(url)){
             Log.d("A-Messenger", "not chat url given");
             return rootView;
