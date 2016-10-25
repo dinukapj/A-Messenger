@@ -10,7 +10,11 @@
         <activity
             android:name=".activities.ChatActivity"
             android:screenOrientation="portrait"
+            android:parentActivityName=".activities.ConversationsActivity"
             android:windowSoftInputMode="stateHidden|adjustResize" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.ConversationsActivity" />
         </activity>
         <activity
             android:name=".activities.PreviewActivity"
@@ -33,3 +37,4 @@
         </application>
 
 </manifest>
+

@@ -12,4 +12,5 @@
     <string name="messenger_unable_to_retrieve_file_required">Unable to retrieve required file.</string>
     <string name="messenger_cancel">Cancel</string>
     <string name="messenger_send">send</string>
+    <string name="x_new_messages">%1$s new messages</string>
 </resources>

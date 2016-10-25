@@ -20,6 +20,7 @@ import com.kaodim.messenger.adapters.ConversationsAdapter;
 import com.kaodim.messenger.models.ConversationModel;
 import com.kaodim.messenger.recievers.MessageReciever;
 import com.kaodim.messenger.tools.AMessenger;
+import com.kaodim.messenger.tools.NotificationManager;
 
 import java.util.ArrayList;
 
@@ -106,9 +107,9 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
 //                    e.printStackTrace();
 //                }
                 Intent intent = new Intent(mContext, ChatActivity.class);
-                intent.putExtra("extra_name", conversation.getName());
-                intent.putExtra("extra_id", conversation.getId());
-                intent.putExtra("extra_incomming_message_avatar", conversation.getAvatar());
+                intent.putExtra(ChatActivity.EXTRA_INCOMING_MESSAGE_USER_NAME, conversation.getName());
+                intent.putExtra(ChatActivity.EXTRA_CONVERSATION_ID, conversation.getId());
+                intent.putExtra(ChatActivity.EXTRA_INCOMING_MESSAGE_AVATAR, conversation.getAvatar());
                 startActivity(intent);
             }
         }));
@@ -193,6 +194,9 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
                 }
                 else {
                     aq.id(R.id.llNoMessages).gone();
+                    if (currentPage==1){
+                        NotificationManager.updateNotifications(getUnreadConversations(mMessages), getApplicationContext());
+                    }
                 }
             }else{
                 if (mMessages.size()>0)
@@ -210,8 +214,17 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
         ((ConversationsAdapter) recyclerView.getAdapter()).updateFooter(false);
         mSwipeView.setRefreshing(false);
         isLoading=false;
-    }
 
+    }
+    private ArrayList<String> getUnreadConversations(ArrayList<ConversationModel> conversationModels){
+        ArrayList<String> ids = new ArrayList<>();
+        for (ConversationModel model : conversationModels){
+            if (model.getUnreadMessagesCount()>0){
+                ids.add(model.getId());
+            }
+        }
+        return ids;
+    }
     //Here Builder
     public  static class Builder {
         private  Bundle args;
