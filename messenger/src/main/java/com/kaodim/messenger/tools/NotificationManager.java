@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.app.TaskStackBuilder;
 
 import com.kaodim.messenger.R;
 import com.kaodim.messenger.activities.ChatActivity;
@@ -47,8 +48,14 @@ public class NotificationManager {
         Intent intent = new Intent(context, ChatActivity.class);
         intent.putExtra(ChatActivity.EXTRA_CONVERSATION_ID, pushModel.conversationId);
         intent.putExtra(ChatActivity.EXTRA_INCOMING_MESSAGE_USER_NAME, pushModel.sender);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
-        PendingIntent resultIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent =
+                TaskStackBuilder.create(context)
+                        .addNextIntent(new Intent(context, AMessenger.getInstance().getParentStackClass()))
+                        .addNextIntentWithParentStack(intent)
+                        .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+
+
         NotificationManagerCompat notificationManager =
                 NotificationManagerCompat.from(context);
 
@@ -59,7 +66,7 @@ public class NotificationManager {
                 .setContentText(pushModel.message)
                 .setSmallIcon(R.drawable.ic_vect_clip)
                 .setLargeIcon(largeIcon)
-                .setContentIntent(resultIntent)
+                .setContentIntent(pendingIntent)
                 .setDefaults(DEFAULTS)
                 .setAutoCancel(true)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(pushModel.message))
@@ -82,8 +89,15 @@ public class NotificationManager {
             intent.putExtra(ChatActivity.EXTRA_INCOMING_MESSAGE_USER_NAME, pushes.get(0).sender);
         }
 
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_NEW_TASK);
-        PendingIntent resultIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        PendingIntent pendingIntent =
+                TaskStackBuilder.create(context)
+                        .addNextIntent(new Intent(context, AMessenger.getInstance().getParentStackClass()))
+                        .addNextIntentWithParentStack(intent)
+                        .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+
+
         NotificationManagerCompat notificationManager =
                 NotificationManagerCompat.from(context);
 
@@ -96,7 +110,7 @@ public class NotificationManager {
                 .setLargeIcon(largeIcon)
                 .setDefaults(DEFAULTS)
                 .setStyle(toInboxStyle(pushes))
-                .setContentIntent(resultIntent)
+                .setContentIntent(pendingIntent)
                 .setGroupSummary(true)
                 .setAutoCancel(true)
                 .setPriority(2)

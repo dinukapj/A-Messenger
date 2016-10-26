@@ -1,10 +1,6 @@
 package com.kaodim.messenger.activities;
 
-import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
 import com.kaodim.messenger.R;
 import com.kaodim.messenger.fragments.ChatFragment;
@@ -57,6 +53,7 @@ public class ChatActivity extends BaseBackButtonActivity {
             ChatFragment.newInstance(conversationId,incomingMessageName,incomingMessageAvatar).commit(getSupportFragmentManager());
         }
     }
+
 
     @Override
     protected void onResume() {

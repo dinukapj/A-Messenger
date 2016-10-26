@@ -1,5 +1,6 @@
 package com.kaodim.messenger.tools;
 
+import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -21,12 +22,14 @@ public abstract  class AMessenger {
 
     private String conversationUrl;
     private String chatUrl;
+    private Class parentStackClass;
 
     private static AMessenger defaultConfig;
 
-    private AMessenger(String conversationUrl, String chatUrl){
+    private AMessenger(String conversationUrl, String chatUrl, Class parentStackClass){
         this.conversationUrl = conversationUrl;
         this.chatUrl  = chatUrl;
+        this.parentStackClass = parentStackClass;
     }
 
     @Nullable
@@ -39,12 +42,15 @@ public abstract  class AMessenger {
         return chatUrl.replace("@",conversationId);
     }
 
+    public Class getParentStackClass (){
+    return parentStackClass;
+    }
 
 
     private AMessenger (){}
-    public static void init(String conversationUrl, String chatUrl, final JsonConverter converter){
+    public static void init(@NonNull String conversationUrl,@NonNull String chatUrl, @NonNull Class<? extends Activity> parentStackClass , @NonNull final JsonConverter converter){
         if (defaultConfig==null){
-            defaultConfig = new AMessenger(conversationUrl, chatUrl) {
+            defaultConfig = new AMessenger(conversationUrl, chatUrl, parentStackClass) {
                 @Override
                 public ArrayList<ConversationModel> toConversationModelArray(String json) {
                     return converter.toConversationModelArray(json);
