@@ -35,6 +35,7 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
 
 
     private RecyclerView recyclerView;
+    private ConversationsAdapter adapter;
     private SwipeRefreshLayout mSwipeView;
     private AQuery aq;
     private Context mContext;
@@ -42,11 +43,10 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
     private Boolean isLoading;
     private int pastVisiblesItems, visibleItemCount, totalItemCount;
 
-
     private BroadcastReceiver mMessageReceiver = new MessageReciever() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            refresh();
+          refresh();
         }
     };
 
@@ -88,13 +88,13 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
                             isLoading = true;
                             Log.v("...", "Last Item Wow !");
                             getMessages(currentPage + 1);
-                            ((ConversationsAdapter) recyclerView.getAdapter()).updateFooter(true);
+                            adapter.updateFooter(true);
                         }
                     }
                 }
             }
         });
-        recyclerView.setAdapter(new ConversationsAdapter(this,new ArrayList<ConversationModel>(),new ConversationsAdapter.OnItemClickListener() {
+        adapter  = new ConversationsAdapter(this,new ArrayList<ConversationModel>(),new ConversationsAdapter.OnItemClickListener() {
 
             @Override
             public void onItemClick(int position, ConversationModel conversation) {
@@ -109,7 +109,8 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
                 intent.putExtra(ChatActivity.EXTRA_INCOMING_MESSAGE_AVATAR, conversation.getAvatar());
                 startActivity(intent);
             }
-        }));
+        });
+        recyclerView.setAdapter(adapter);
     }
 
     private void initSwipteRefreshLayout(){
@@ -119,7 +120,7 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
     }
     public void getMessages(int page) {
         int progressBar=0;
-        if (((ConversationsAdapter)recyclerView.getAdapter()).getItemCount()<1){
+        if (adapter.getItemCount()<1){
             progressBar = R.id.progressBar;
         }
         aq.progress(progressBar).ajax(AMessenger.getInstance().getConversationUrl(page), String.class, this, "callbackPerformGetMessage");
@@ -144,13 +145,7 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
     @Override
     protected void onResume() {
         super.onResume();
-        mSwipeView.post(new Runnable() {
-            @Override
-            public void run() {
-                mSwipeView.setRefreshing(true);
-                refresh();
-            }
-        });
+        refresh();
         registerReceiver(mMessageReceiver, new IntentFilter(MessageReciever.FILTER_MESSAGE_RECEIVER));
     }
     @Override
@@ -162,17 +157,23 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
 
     @Override
     public void onRefresh() {
-        refresh();
-    }
-    private void refresh(){
         if (isLoading){
             aq.ajaxCancel();
             isLoading=false;
-            ((ConversationsAdapter) recyclerView.getAdapter()).updateFooter(false);
+            adapter.updateFooter(false);
         }
         getMessages(1);
     }
 
+    private void refresh(){
+        mSwipeView.post(new Runnable() {
+            @Override
+            public void run() {
+                mSwipeView.setRefreshing(true);
+                onRefresh();
+            }
+        });
+    }
 
     public void callbackPerformGetMessage(String url, String json, AjaxStatus status) {
         Log.d(TAG, url);
@@ -180,7 +181,7 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
 
             ArrayList<ConversationModel> mMessages = AMessenger.getInstance().toConversationModelArray(json);
             if (mSwipeView.isRefreshing()){
-                ((ConversationsAdapter)recyclerView.getAdapter()).clear();
+                adapter.clear();
                 currentPage=1;
                 Log.d("callbackGetMessage", "refresh "+currentPage);
 
@@ -200,7 +201,7 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
                     currentPage++;
                 Log.d("callbackGetMessage", "load more "+currentPage);
             }
-            ((ConversationsAdapter)recyclerView.getAdapter()).addViews(mMessages);
+            adapter.addViews(mMessages);
             Log.d("get messages result", json.toString());
         } else {
             aq.id(R.id.llNoMessages).visible();
@@ -208,7 +209,7 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
             aq.id(R.id.tvNoItemsText).text(getString(R.string.messenger_HTTP_RANDOM_ERROR));
             Log.d("get messages error", status.getError());
         }
-        ((ConversationsAdapter) recyclerView.getAdapter()).updateFooter(false);
+        adapter.updateFooter(false);
         mSwipeView.setRefreshing(false);
         isLoading=false;
 

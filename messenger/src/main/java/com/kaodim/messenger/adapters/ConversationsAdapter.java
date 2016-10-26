@@ -146,6 +146,9 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
         conversations.clear();
         notifyDataSetChanged();
     }
+    public ArrayList<ConversationModel> getItems(){
+        return conversations;
+    }
     @Override
     public int getItemCount() {
         return conversations.size()+1;

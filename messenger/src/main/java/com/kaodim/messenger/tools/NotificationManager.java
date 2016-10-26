@@ -15,6 +15,7 @@ import com.kaodim.messenger.activities.ChatActivity;
 import com.kaodim.messenger.activities.ConversationsActivity;
 import com.kaodim.messenger.database.DatabaseManager;
 import com.kaodim.messenger.models.MessagePushModel;
+import com.kaodim.messenger.recievers.MessageReciever;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,6 +29,13 @@ public class NotificationManager {
     private static final int NOTIFICATION_ID = 6789221;
 
     public static void addNotification(String conversationId, String sender, String message, Context context){
+        Intent broadcastIntent =new Intent(MessageReciever.FILTER_MESSAGE_RECEIVER);
+        broadcastIntent.putExtra(MessageReciever.EXTRA_CONVERSATION_ID, conversationId);
+        broadcastIntent.putExtra(MessageReciever.EXTRA_SENDER, sender);
+        broadcastIntent.putExtra(MessageReciever.EXTRA_MESSAGE, message);
+        context.sendBroadcast(broadcastIntent);
+
+
         ArrayList<MessagePushModel> pushes = DatabaseManager.insertMessage(new MessagePushModel(conversationId, sender, message), context);
         if (pushes.size()>1){
             sendStackedNotification(pushes, context);
@@ -35,6 +43,7 @@ public class NotificationManager {
             sendSingleMessagePush(pushes.get(0),context);
         }
     }
+
     private static boolean isMoreThanOneConversation(ArrayList<MessagePushModel> pushModels){
         String firstConversationId=pushModels.get(0).conversationId;
         for (MessagePushModel models : pushModels){
@@ -95,6 +104,7 @@ public class NotificationManager {
                         .addNextIntent(new Intent(context, AMessenger.getInstance().getParentStackClass()))
                         .addNextIntentWithParentStack(intent)
                         .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
 
 
 
