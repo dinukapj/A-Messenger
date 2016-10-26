@@ -62,9 +62,6 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
         initRecyclerView();
         isLoading = false;
         currentPage = 0;
-//        if (getIntent().getStringExtra("msg") != "") {
-//            GcmMessageHelper.mMessageNumber = 1;
-//        }
     }
     private void initRecyclerView(){
         recyclerView = (RecyclerView)findViewById(R.id.rvConversations);
@@ -98,11 +95,6 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
 
             @Override
             public void onItemClick(int position, ConversationModel conversation) {
-//                try {
-//                    GcmMessageHandler.removeMsgsNoti(message.getServiceQuotationId(), getApplicationContext());
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
                 Intent intent = new Intent(mContext, ChatActivity.class);
                 intent.putExtra(ChatActivity.EXTRA_INCOMING_MESSAGE_USER_NAME, conversation.getName());
                 intent.putExtra(ChatActivity.EXTRA_CONVERSATION_ID, conversation.getId());

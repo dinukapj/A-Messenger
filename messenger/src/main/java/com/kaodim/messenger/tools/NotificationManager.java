@@ -31,8 +31,8 @@ public class NotificationManager {
     public static void addNotification(String conversationId, String sender, String message, Context context){
         Intent broadcastIntent =new Intent(MessageReciever.FILTER_MESSAGE_RECEIVER);
         broadcastIntent.putExtra(MessageReciever.EXTRA_CONVERSATION_ID, conversationId);
-        broadcastIntent.putExtra(MessageReciever.EXTRA_SENDER, sender);
-        broadcastIntent.putExtra(MessageReciever.EXTRA_MESSAGE, message);
+//        broadcastIntent.putExtra(MessageReciever.EXTRA_SENDER, sender);
+//        broadcastIntent.putExtra(MessageReciever.EXTRA_MESSAGE, message);
         context.sendBroadcast(broadcastIntent);
 
 

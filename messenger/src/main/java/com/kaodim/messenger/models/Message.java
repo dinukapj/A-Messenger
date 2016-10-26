@@ -13,6 +13,9 @@ public class Message implements MessageModel{
     private Date createdAt;
     private Content content;
 
+
+
+
     public class Content implements MessageModel.Content{
         String text;
         Attachment attachment;

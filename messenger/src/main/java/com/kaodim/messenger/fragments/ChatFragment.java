@@ -58,6 +58,7 @@ public  class ChatFragment extends Fragment{
     private int pastVisiblesItems, visibleItemCount, totalItemCount;
     private int currentPage;
     private Boolean isLoading;
+    private boolean isRefreshing;
 
 
     private static final int REQUEST_CODE_SEND_FILE=1;
@@ -78,8 +79,22 @@ public  class ChatFragment extends Fragment{
     private BroadcastReceiver mMessageReceiver = new MessageReciever() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            String conversationId = intent.getStringExtra(MessageReciever.EXTRA_CONVERSATION_ID);
+            if (ChatFragment.this.conversationId.equalsIgnoreCase(conversationId)){
+                refresh();
+            }
         }
     };
+
+    private void refresh() {
+        if (isLoading){
+            aq.ajaxCancel();
+            isLoading=false;
+            adapter.updateFooter(false);
+        }
+        isRefreshing = true;
+        getMessages(1);
+    }
 
     public static ChatFragment newInstance(String conversationId, String incommingMessageName, String incommingMessageAvatar) {
         ChatFragment fragment = new ChatFragment();
@@ -122,7 +137,7 @@ public  class ChatFragment extends Fragment{
         aq.id(R.id.llSendNewMessage).clicked(this, "clickedSendMessage");
         aq.id(R.id.llOpenCamera).clicked(this, "onllOpenCameraClicked");
         aq.id(R.id.llattach).clicked(this, "onllAttachClicked");
-        getMessages(1);
+        refresh();
         return rootView;
     }
     public void onllOpenCameraClicked(){
@@ -197,17 +212,26 @@ public  class ChatFragment extends Fragment{
             Log.d("get Thread result", json.toString());
             ChatModel chat = fromJsonToChatModel(json);
             conversationId = chat.getConversationId();
-            if (chat.getMessages().size() > 0)
-                currentPage++;
+
+            if (isRefreshing){
+                adapter.clear();
+                currentPage=1;
+                Log.d("callbackGetMessage", "refresh "+currentPage);
+            }else{
+                if (chat.getMessages().size() > 0)
+                    currentPage++;
+            }
             adapter.addItems(chat.getMessages());
             adapter.notifyDataSetChanged();
         } else {
             Log.d("get Thread error", status.getError());
         }
-        ((ChatAdapter) recyclerView.getAdapter()).updateFooter(false);
+        adapter.updateFooter(false);
         isLoading = false;
+        isRefreshing = false;
+
     }
-    public void clickedSendMessage(View button){
+    public void clickedSendMessage(){
         String content =  aq.id(R.id.etNewMessage).getText().toString();
         if (TextUtils.isEmpty(content)){return;}
         sendPost(content,null, 0);
