@@ -39,11 +39,8 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
     private AQuery aq;
     private Context mContext;
     private int currentPage;
-    private ConversationsAdapter mAdapter;
-    private ArrayList<ConversationModel> mMessages;
     private Boolean isLoading;
     private int pastVisiblesItems, visibleItemCount, totalItemCount;
-    private String chatUrl;
 
 
     private BroadcastReceiver mMessageReceiver = new MessageReciever() {

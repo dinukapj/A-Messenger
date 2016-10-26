@@ -18,7 +18,7 @@ import java.util.ArrayList;
 public abstract  class AMessenger {
 
     private final int MESSAGES_THRESHOLD = 10;
-
+    public static final int ALL_PAGES = -1;
 
     private String conversationUrl;
     private String chatUrl;
@@ -37,9 +37,13 @@ public abstract  class AMessenger {
        return conversationUrl + TextUtils.getPagingParams(MESSAGES_THRESHOLD, page);
     }
     @Nullable
-    public String getChatUrl(String conversationId){
+    public String getChatUrl(String conversationId, int page){
         //HERE example of url: https://kakao-makao.com/conversations/@/chat.json  so "@" is a conversationId
-        return chatUrl.replace("@",conversationId);
+        String url = chatUrl.replace("@",conversationId);
+        if (page!=ALL_PAGES){
+            url  +=  TextUtils.getPagingParams(MESSAGES_THRESHOLD, page);
+        }
+        return  url;
     }
 
     public Class getParentStackClass (){

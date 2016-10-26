@@ -22,20 +22,21 @@ import com.androidquery.AQuery;
 import com.androidquery.callback.AjaxStatus;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import com.kaodim.messenger.R;
 import com.kaodim.messenger.activities.PreviewActivity;
 import com.kaodim.messenger.adapters.ChatAdapter;
+import com.kaodim.messenger.adapters.ConversationsAdapter;
 import com.kaodim.messenger.models.Chat;
 import com.kaodim.messenger.models.ChatModel;
+import com.kaodim.messenger.models.ConversationModel;
 import com.kaodim.messenger.models.Message;
 import com.kaodim.messenger.models.MessageModel;
 import com.kaodim.messenger.recievers.MessageReciever;
 import com.kaodim.messenger.tools.AMessenger;
+import com.kaodim.messenger.tools.NotificationManager;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -50,15 +51,16 @@ import static android.app.Activity.RESULT_OK;
 public  class ChatFragment extends Fragment{
     private AQuery aq;
     private ChatAdapter adapter;
-    private RecyclerView rvMessageThread;
+    private RecyclerView recyclerView;
     protected Gson gson;
     String conversationId;
     String incommingMessageAvatar;
-    String url;
+    private int pastVisiblesItems, visibleItemCount, totalItemCount;
+    private int currentPage;
+    private Boolean isLoading;
+
+
     private static final int REQUEST_CODE_SEND_FILE=1;
-    protected String getMessageThreadURL(String conversationId){
-        return url;
-    }
     protected MessageModel fromJsonToMessageModel(String json){
         return gson.fromJson(json, Message.class);
     }
@@ -73,12 +75,9 @@ public  class ChatFragment extends Fragment{
                 .commit();
     }
 
-
-
     private BroadcastReceiver mMessageReceiver = new MessageReciever() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            updateMessageList();
         }
     };
 
@@ -105,15 +104,9 @@ public  class ChatFragment extends Fragment{
             return rootView;
         }
 
-        url = AMessenger.getInstance().getChatUrl(conversationId);
-        if (android.text.TextUtils.isEmpty(url)){
-            Log.d("A-Messenger", "not chat url given");
-            return rootView;
-        }
-        url.replace("@",conversationId); //Here adding conversaionId to url
-
         incommingMessageAvatar = b.getString("extra_incomming_message_avatar");
-
+        isLoading = false;
+        currentPage = 0;
         String title = b.getString("extra_name");
         if (TextUtils.isEmpty(title)){
             getActivity().setTitle("");
@@ -129,7 +122,7 @@ public  class ChatFragment extends Fragment{
         aq.id(R.id.llSendNewMessage).clicked(this, "clickedSendMessage");
         aq.id(R.id.llOpenCamera).clicked(this, "onllOpenCameraClicked");
         aq.id(R.id.llattach).clicked(this, "onllAttachClicked");
-        updateMessageList();
+        getMessages(1);
         return rootView;
     }
     public void onllOpenCameraClicked(){
@@ -143,18 +136,44 @@ public  class ChatFragment extends Fragment{
         startActivityForResult(cameraIntent,REQUEST_CODE_SEND_FILE);
     }
     private void initializeRecyclerView(View container, String avatar){
-        rvMessageThread = (RecyclerView)container.findViewById(R.id.rvMessageThread);
+        recyclerView = (RecyclerView)container.findViewById(R.id.rvMessageThread);
         final LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         layoutManager.setReverseLayout(true);
-        rvMessageThread.setLayoutManager(layoutManager);
-        rvMessageThread.setHasFixedSize(true); // Increases the performance
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setHasFixedSize(true); // Increases the performance
         RecyclerView.ItemAnimator itemAnimator = new DefaultItemAnimator();
         itemAnimator.setAddDuration(1000);
         itemAnimator.setRemoveDuration(1000);
-        rvMessageThread.setItemAnimator(itemAnimator);
+        recyclerView.setItemAnimator(itemAnimator);
         adapter = new ChatAdapter(getContext(), new ArrayList<MessageModel>(),avatar);
-        rvMessageThread.setAdapter(adapter);
+        recyclerView.setAdapter(adapter);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                if (dy < 0) //check for scroll down
+                {
+                    visibleItemCount = layoutManager.getChildCount();
+                    totalItemCount = layoutManager.getItemCount();
+                    pastVisiblesItems = layoutManager.findFirstVisibleItemPosition();
+                    if (!isLoading) {
+                        if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) {
+                            isLoading = true;
+                            Log.v("...", "Last Item Wow !");
+                            getMessages(currentPage + 1);
+                            ((ChatAdapter) recyclerView.getAdapter()).updateFooter(true);
+                        }
+                    }
+                }
+            }
+        });
+    }
+    public void getMessages(int page) {
+        int progressBar=0;
+        if (recyclerView.getAdapter().getItemCount()<1){
+            progressBar = R.id.progressBar;
+        }
+        aq.progress(progressBar).ajax(AMessenger.getInstance().getChatUrl(conversationId, page), String.class, this, "callbackPerformGetThread");
     }
 
     public void callbackPerformSendMessage(String url, String  json, AjaxStatus status){
@@ -163,12 +182,9 @@ public  class ChatFragment extends Fragment{
 //            mixpanel.track(MixpanelEvents.sent_message); //TODO set mixpanel
             aq.id(R.id.etNewMessage).text("");
             MessageModel newPost = fromJsonToMessageModel(json);
-
-
-
             adapter.addItem(newPost);
             adapter.notifyItemInserted(0);
-            rvMessageThread.scrollToPosition(0);
+            recyclerView.scrollToPosition(0);
         }else{
             Log.d("send message error", status.getError()) ;
 //            mixpanel.track(MixpanelEvents.sent_message_failed); //TODO add mixpanel event
@@ -176,18 +192,21 @@ public  class ChatFragment extends Fragment{
     }
 
     public void callbackPerformGetThread(String url, String json, AjaxStatus status) {
-        if (json != null){
+        Log.d("ChatFragment", url);
+        if (json != null) {
             Log.d("get Thread result", json.toString());
             ChatModel chat = fromJsonToChatModel(json);
             conversationId = chat.getConversationId();
-            adapter.clear();
+            if (chat.getMessages().size() > 0)
+                currentPage++;
             adapter.addItems(chat.getMessages());
             adapter.notifyDataSetChanged();
-        }else{
-            Log.d("get Thread error", status.getError()) ;
+        } else {
+            Log.d("get Thread error", status.getError());
         }
+        ((ChatAdapter) recyclerView.getAdapter()).updateFooter(false);
+        isLoading = false;
     }
-
     public void clickedSendMessage(View button){
         String content =  aq.id(R.id.etNewMessage).getText().toString();
         if (TextUtils.isEmpty(content)){return;}
@@ -202,12 +221,9 @@ public  class ChatFragment extends Fragment{
         if (attachment!=null){
             params.put("attachment", attachment);
         }
-        aq.progress(progress).ajax(getMessageThreadURL(conversationId), params, String.class, this, "callbackPerformSendMessage");
+        aq.progress(progress).ajax(AMessenger.getInstance().getChatUrl(conversationId,AMessenger.ALL_PAGES), params, String.class, this, "callbackPerformSendMessage");
     }
 
-    private void updateMessageList(){
-        aq.ajax(getMessageThreadURL(conversationId), String.class, this, "callbackPerformGetThread");
-    }
     @Override
     public void onPause() {
         super.onPause();

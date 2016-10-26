@@ -42,9 +42,13 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
     private ArrayList<MessageModel> messages;
     private String smbdysAvatar;
     private Context mContext;
+    private boolean shouldShowFooter;
 
-    public static final int TYPE_MESSAGE_ME = 0;
-    public static final int TYPE_MESSAGE_SMBDY = 1;
+    private static final int TYPE_MESSAGE_ME = 0;
+    private static final int TYPE_MESSAGE_SMBDY = 1;
+    private static final int TYPE_FOOTER=2;
+
+
 
     Transformation blurTransformation;
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -90,6 +94,10 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
             case TYPE_MESSAGE_SMBDY:
                 v =mInflater.inflate(R.layout.item_incomming_chat_message, parent, false);
                 break;
+            case TYPE_FOOTER:
+                v = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.item_list_footer, parent, false);
+                break;
         }
         ViewHolder vh = new ViewHolder(v, viewType);
         return vh;
@@ -97,21 +105,37 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
 
     @Override
     public int getItemViewType(int position) {
+        if (position==messages.size()){
+            return TYPE_FOOTER;
+        }
+
         if (messages.get(position).getIsOutgoingMessage()){
             return TYPE_MESSAGE_ME;
         }else{
             return TYPE_MESSAGE_SMBDY;
         }
     }
-
+    public void updateFooter(boolean shouldShowFooter){
+        this.shouldShowFooter=shouldShowFooter;
+        notifyItemChanged(messages.size());
+    }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
+        final AQuery aq = new AQuery(holder.convertView);
+        if (position==messages.size()){
+            if (shouldShowFooter){
+                aq.id(R.id.pbLoadingMore).visible();
+            }else{
+                aq.id(R.id.pbLoadingMore).invisible();
+            }
+            return ;
+        }
+
         final MessageModel message = messages.get(position);
         if (message==null){
             return;
         }
-        final AQuery aq = new AQuery(holder.convertView);
         String date = TextUtils.getDateString(message.getDate().getTime(), aq.getContext());
         if (getItemViewType(position) == TYPE_MESSAGE_SMBDY ){
             Picasso.with(mContext)
@@ -259,7 +283,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
     }
     @Override
     public int getItemCount() {
-        return messages.size();
+        return messages.size()+1;
     }
 
 }

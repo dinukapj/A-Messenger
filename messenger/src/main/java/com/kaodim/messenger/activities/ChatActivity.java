@@ -19,7 +19,6 @@ public class ChatActivity extends BaseBackButtonActivity {
     String conversationId;
     String incomingMessageName;
     String incomingMessageAvatar;
-    String chatUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +35,6 @@ public class ChatActivity extends BaseBackButtonActivity {
             return;
         }
 
-        chatUrl = AMessenger.getInstance().getChatUrl(conversationId);
 
         incomingMessageAvatar = getIntent().getStringExtra(EXTRA_INCOMING_MESSAGE_AVATAR);
         if (android.text.TextUtils.isEmpty(incomingMessageAvatar)){
