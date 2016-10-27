@@ -13,4 +13,5 @@ public interface ConversationModel {
     public String getLastMessage();
     public Date getDate();
     public int getUnreadMessagesCount();
+    public String getChatContextId();
 }

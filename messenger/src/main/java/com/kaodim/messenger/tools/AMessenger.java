@@ -23,13 +23,15 @@ public abstract  class AMessenger {
     private String conversationUrl;
     private String chatUrl;
     private Class parentStackClass;
+    public String chatMenuTitle;
 
     private static AMessenger defaultConfig;
 
-    private AMessenger(String conversationUrl, String chatUrl, Class parentStackClass){
+    private AMessenger(String conversationUrl, String chatUrl, Class parentStackClass, String chatMenuTitle){
         this.conversationUrl = conversationUrl;
         this.chatUrl  = chatUrl;
         this.parentStackClass = parentStackClass;
+        this.chatMenuTitle = chatMenuTitle;
     }
 
     @Nullable
@@ -52,9 +54,9 @@ public abstract  class AMessenger {
 
 
     private AMessenger (){}
-    public static void init(@NonNull String conversationUrl,@NonNull String chatUrl, @NonNull Class<? extends Activity> parentStackClass , @NonNull final JsonConverter converter){
+    public static void init(@NonNull String conversationUrl,@NonNull String chatUrl, @NonNull Class<? extends Activity> parentStackClass ,String chatMenuTitle, @NonNull final JsonConverter converter){
         if (defaultConfig==null){
-            defaultConfig = new AMessenger(conversationUrl, chatUrl, parentStackClass) {
+            defaultConfig = new AMessenger(conversationUrl, chatUrl, parentStackClass, chatMenuTitle) {
                 @Override
                 public ArrayList<ConversationModel> toConversationModelArray(String json) {
                     return converter.toConversationModelArray(json);
@@ -67,9 +69,15 @@ public abstract  class AMessenger {
                 public MessageModel toMessageModel(String json) {
                     return converter.toMessageModel(json);
                 }
+
+                @Override
+                public void menItemClicked(String chatContextId) {
+                    converter.menItemClicked(chatContextId);
+                }
             };
         }
     }
+
     @Nullable
     public static AMessenger getInstance(){
         if (defaultConfig == null){
@@ -82,10 +90,12 @@ public abstract  class AMessenger {
     public abstract ArrayList<ConversationModel> toConversationModelArray(String json);
     public abstract ChatModel toChatModel(String json);
     public abstract MessageModel toMessageModel(String json);
+    public abstract void menItemClicked(String chatContextId);
 
     public interface JsonConverter{
         ArrayList<ConversationModel> toConversationModelArray(String json);
         ChatModel toChatModel(String json);
         MessageModel toMessageModel(String json);
+        void menItemClicked(String chatContextId);
     }
 }

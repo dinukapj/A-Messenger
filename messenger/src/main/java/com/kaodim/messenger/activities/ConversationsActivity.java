@@ -17,6 +17,7 @@ import com.androidquery.AQuery;
 import com.androidquery.callback.AjaxStatus;
 import com.kaodim.messenger.R;
 import com.kaodim.messenger.adapters.ConversationsAdapter;
+import com.kaodim.messenger.models.Chat;
 import com.kaodim.messenger.models.ConversationModel;
 import com.kaodim.messenger.recievers.MessageReciever;
 import com.kaodim.messenger.tools.AMessenger;
@@ -99,6 +100,7 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
                 intent.putExtra(ChatActivity.EXTRA_INCOMING_MESSAGE_USER_NAME, conversation.getName());
                 intent.putExtra(ChatActivity.EXTRA_CONVERSATION_ID, conversation.getId());
                 intent.putExtra(ChatActivity.EXTRA_INCOMING_MESSAGE_AVATAR, conversation.getAvatar());
+                intent.putExtra(ChatActivity.EXTRA_CHAT_CONTEXT_ID, conversation.getChatContextId());
                 startActivity(intent);
             }
         });
