@@ -22,6 +22,7 @@ import com.kaodim.messenger.R;
 import com.kaodim.messenger.activities.ImageViewerActivity;
 import com.kaodim.messenger.models.MessageModel;
 import com.kaodim.messenger.tools.Blur;
+import com.kaodim.messenger.tools.CircleTransform;
 import com.kaodim.messenger.tools.FileHelper;
 import com.kaodim.messenger.tools.RoundedCornersTransform;
 import com.kaodim.messenger.tools.TextUtils;
@@ -141,7 +142,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
             Picasso.with(mContext)
                     .load(smbdysAvatar)
                     .placeholder(R.drawable.ic_vect_default_avatar)
-                    .transform(blurTransformation)
+                    .transform(new CircleTransform())
                     .into(aq.id(R.id.ciProfileImage).getImageView(), new Callback() {
                         @Override
                         public void onSuccess() {
