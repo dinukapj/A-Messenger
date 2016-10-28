@@ -52,11 +52,13 @@ public class ChatActivity extends BaseBackButtonActivity {
         incomingMessageName = getIntent().getStringExtra(EXTRA_INCOMING_MESSAGE_USER_NAME);
         if (android.text.TextUtils.isEmpty(incomingMessageName)){
             Logs.log(Logs.NO_NAME_PASSED);
+        }else {
+            setTitle(incomingMessageName);
         }
 
 
         if (savedInstanceState == null) {
-            ChatFragment.newInstance(conversationId,incomingMessageName,incomingMessageAvatar).commit(getSupportFragmentManager());
+            ChatFragment.newInstance(conversationId,incomingMessageAvatar).commit(getSupportFragmentManager());
         }
     }
     @Override
@@ -64,7 +66,7 @@ public class ChatActivity extends BaseBackButtonActivity {
         int id = item.getItemId();
         if (id == R.id.itemRequest) {
             if (chatContextId!=null)
-           AMessenger.getInstance().menItemClicked(chatContextId);
+                AMessenger.getInstance().menItemClicked(chatContextId);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -82,7 +84,7 @@ public class ChatActivity extends BaseBackButtonActivity {
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         if (!TextUtils.isEmpty(AMessenger.getInstance().chatMenuTitle))
-        menu.findItem(R.id.itemRequest).setTitle(AMessenger.getInstance().chatMenuTitle);
+            menu.findItem(R.id.itemRequest).setTitle(AMessenger.getInstance().chatMenuTitle);
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -90,6 +92,6 @@ public class ChatActivity extends BaseBackButtonActivity {
     protected void onResume() {
         super.onResume();
         if (conversationId!=null)
-        NotificationManager.removeNotifications(conversationId, getApplicationContext());
+            NotificationManager.removeNotifications(conversationId, getApplicationContext());
     }
 }

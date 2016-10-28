@@ -96,12 +96,11 @@ public  class ChatFragment extends Fragment{
         getMessages(1);
     }
 
-    public static ChatFragment newInstance(String conversationId, String incommingMessageName, String incommingMessageAvatar) {
+    public static ChatFragment newInstance(String conversationId, String incommingMessageAvatar) {
         ChatFragment fragment = new ChatFragment();
         Bundle b = new Bundle();
         b.putSerializable("extra_chat_model_class", ChatModel.class );
         b.putString("extra_id",conversationId );
-        b.putString("extra_name",incommingMessageName );
         b.putString("extra_incomming_message_avatar",incommingMessageAvatar );
         fragment.setArguments(b);
         return fragment;
@@ -122,12 +121,7 @@ public  class ChatFragment extends Fragment{
         incommingMessageAvatar = b.getString("extra_incomming_message_avatar");
         isLoading = false;
         currentPage = 0;
-        String title = b.getString("extra_name");
-        if (TextUtils.isEmpty(title)){
-            getActivity().setTitle("");
-        }else{
-            getActivity().setTitle(title);
-        }
+
 
         aq = new AQuery(rootView);
         gson = new GsonBuilder()
