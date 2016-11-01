@@ -143,6 +143,8 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
                     .load(smbdysAvatar)
                     .placeholder(R.drawable.ic_vect_default_avatar)
                     .transform(new CircleTransform())
+                    .resize(144,144)
+                    .onlyScaleDown()
                     .into(aq.id(R.id.ciProfileImage).getImageView(), new Callback() {
                         @Override
                         public void onSuccess() {

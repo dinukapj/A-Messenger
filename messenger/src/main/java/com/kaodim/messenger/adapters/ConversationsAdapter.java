@@ -121,6 +121,8 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
         }
         Picasso.with(mContetx)
                 .load(conversation.getAvatar())
+                .resize(184,184)
+                .onlyScaleDown()
                 .placeholder(R.drawable.ic_vect_default_avatar)
                 .transform(new CircleTransform())
                 .error(R.drawable.ic_vect_default_avatar)
