@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -170,7 +171,12 @@ public  class ChatFragment extends Fragment{
                             isLoading = true;
                             Log.v("...", "Last Item Wow !");
                             getMessages(currentPage + 1);
-                            ((ChatAdapter) recyclerView.getAdapter()).updateFooter(true);
+                             new Handler().post( new Runnable() {
+                                public void run() {
+                                    adapter.updateFooter(true);
+                                }
+                            });
+
                         }
                     }
                 }
