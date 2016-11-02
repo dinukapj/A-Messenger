@@ -61,7 +61,6 @@ public  class ChatFragment extends Fragment{
     private Boolean isLoading;
     private boolean isRefreshing;
 
-
     private static final int REQUEST_CODE_SEND_FILE=1;
     protected MessageModel fromJsonToMessageModel(String json){
         return gson.fromJson(json, Message.class);
@@ -194,9 +193,11 @@ public  class ChatFragment extends Fragment{
     public void callbackPerformSendMessage(String url, String  json, AjaxStatus status){
 
         if(json != null){
+
 //            mixpanel.track(MixpanelEvents.sent_message); //TODO set mixpanel
             aq.id(R.id.etNewMessage).text("");
             MessageModel newPost = fromJsonToMessageModel(json);
+            AMessenger.getInstance().trackMessageSent(getActivity().getClass());
             adapter.addItem(newPost);
             adapter.notifyItemInserted(0);
             recyclerView.scrollToPosition(0);

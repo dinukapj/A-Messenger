@@ -24,8 +24,8 @@ public abstract  class AMessenger {
     private String chatUrl;
     private Class parentStackClass;
     public String chatMenuTitle;
-
     private static AMessenger defaultConfig;
+    private Analytics analytics;
 
     private AMessenger(String conversationUrl, String chatUrl, Class parentStackClass, String chatMenuTitle){
         this.conversationUrl = conversationUrl;
@@ -54,7 +54,7 @@ public abstract  class AMessenger {
 
 
     private AMessenger (){}
-    public static void init(@NonNull String conversationUrl,@NonNull String chatUrl, @NonNull Class<? extends Activity> parentStackClass ,String chatMenuTitle, @NonNull final JsonConverter converter){
+    public static AMessenger init(@NonNull String conversationUrl,@NonNull String chatUrl, @NonNull Class<? extends Activity> parentStackClass ,String chatMenuTitle, @NonNull final JsonConverter converter){
         if (defaultConfig==null){
             defaultConfig = new AMessenger(conversationUrl, chatUrl, parentStackClass, chatMenuTitle) {
                 @Override
@@ -76,6 +76,7 @@ public abstract  class AMessenger {
                 }
             };
         }
+        return defaultConfig;
     }
 
     @Nullable
@@ -86,16 +87,25 @@ public abstract  class AMessenger {
         }
         return defaultConfig;
     }
-
+    public void trackMessageSent(Class sourceActivity){
+        if (analytics!=null){
+            analytics.onMessageSent(sourceActivity);
+        }
+    }
+    public void setAnalytics(Analytics analytics){
+        this.analytics = analytics;
+    }
     public abstract ArrayList<ConversationModel> toConversationModelArray(String json);
     public abstract ChatModel toChatModel(String json);
     public abstract MessageModel toMessageModel(String json);
     public abstract void menItemClicked(String chatContextId);
-
     public interface JsonConverter{
         ArrayList<ConversationModel> toConversationModelArray(String json);
         ChatModel toChatModel(String json);
         MessageModel toMessageModel(String json);
         void menItemClicked(String chatContextId);
+    }
+    public interface Analytics{
+        void onMessageSent(Class<? extends Activity> sourceActivity);
     }
 }
