@@ -69,11 +69,11 @@ public class NotificationManager {
                 NotificationManagerCompat.from(context);
 
         Bitmap largeIcon = BitmapFactory.decodeResource(context.getResources(),
-                R.drawable.ic_vect_default_avatar);
+                R.drawable.ic_launcher);
         Notification summaryNotification = new NotificationCompat.Builder(context)
                 .setContentTitle(pushModel.sender)
                 .setContentText(pushModel.message)
-                .setSmallIcon(R.drawable.ic_vect_clip)
+                .setSmallIcon(R.drawable.ic_messages)
                 .setLargeIcon(largeIcon)
                 .setContentIntent(pendingIntent)
                 .setDefaults(DEFAULTS)
@@ -112,11 +112,11 @@ public class NotificationManager {
                 NotificationManagerCompat.from(context);
 
         Bitmap largeIcon = BitmapFactory.decodeResource(context.getResources(),
-                R.drawable.ic_vect_default_avatar);
+                R.drawable.ic_launcher);
         Notification summaryNotification = new NotificationCompat.Builder(context)
                 .setContentTitle(context.getString(R.string.x_new_messages, pushes.size()+""))
                 .setContentText(pushes.get(0).message)
-                .setSmallIcon(R.drawable.ic_vect_clip)
+                .setSmallIcon(R.drawable.ic_messages)
                 .setLargeIcon(largeIcon)
                 .setDefaults(DEFAULTS)
                 .setStyle(toInboxStyle(pushes))
