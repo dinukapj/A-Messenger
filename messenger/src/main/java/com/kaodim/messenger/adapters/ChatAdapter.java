@@ -141,7 +141,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
         if (getItemViewType(position) == TYPE_MESSAGE_SMBDY ){
             Picasso.with(mContext)
                     .load(smbdysAvatar)
-                    .placeholder(R.drawable.ic_vect_default_avatar)
+                    .placeholder(R.drawable.ic_default_avatar)
                     .transform(new CircleTransform())
                     .resize(144,144)
                     .onlyScaleDown()
@@ -151,7 +151,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
                         }
                         @Override
                         public void onError() {
-                            Picasso.with(mContext).load(R.drawable.ic_vect_default_avatar).
+                            Picasso.with(mContext).load(R.drawable.ic_default_avatar).
                                     into(aq.id(R.id.ciProfileImage).getImageView());
                         }
                     });

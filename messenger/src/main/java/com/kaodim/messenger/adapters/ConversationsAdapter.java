@@ -123,9 +123,9 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
                 .load(conversation.getAvatar())
                 .resize(184,184)
                 .onlyScaleDown()
-                .placeholder(R.drawable.ic_vect_default_avatar)
+                .placeholder(R.drawable.ic_default_avatar)
                 .transform(new CircleTransform())
-                .error(R.drawable.ic_vect_default_avatar)
+                .error(R.drawable.ic_default_avatar)
                 .into(aq.id(R.id.ciProfileImage).getImageView());
         aq.id(holder.container).clicked(new View.OnClickListener() {
             @Override
