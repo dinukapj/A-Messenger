@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 
 import com.androidquery.AQuery;
 import com.kaodim.messenger.R;
+import com.kaodim.messenger.models.Conversation;
 import com.kaodim.messenger.models.ConversationModel;
 import com.kaodim.messenger.tools.Blur;
 import com.kaodim.messenger.tools.CircleTransform;
@@ -30,13 +31,13 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
 
     private Context mContetx;
     private AQuery aq;
-    private ArrayList<ConversationModel> conversations;
+    private ArrayList<Conversation> conversations;
     private boolean shouldShowFooter;
 
     private OnItemClickListener onClickListener;
     Transformation blurTransformation;
 
-    public ConversationsAdapter(final Context context, ArrayList<ConversationModel> conversations, OnItemClickListener onClickListener) {
+    public ConversationsAdapter(final Context context, ArrayList<Conversation> conversations, OnItemClickListener onClickListener) {
         mContetx = context;
         this.conversations = conversations;
         this.onClickListener =onClickListener;
@@ -63,7 +64,7 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
         }
     }
     public interface OnItemClickListener{
-        public void onItemClick(int position,ConversationModel conversations);
+        public void onItemClick(int position,Conversation conversation);
     }
 
     @Override
@@ -94,39 +95,44 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
             }
             return ;
         }
-        final ConversationModel conversation = conversations.get(position);
+        final Conversation conversation = conversations.get(position);
+        if (conversation.message!=null){
+            aq.id(R.id.tvMessageName).text(conversation.message.name);
 
-        aq.id(R.id.tvMessageName).text(conversation.getName());
+            if (conversation.message.content!=null){
+                aq.id(R.id.tvMessageContent).text(conversation.message.content.text);
+            }
 
-        if (conversation.getLastMessage()!=null){
-            Spanned spannedContent = TextUtils.fromHtml(conversation.getLastMessage());
-            aq.id(R.id.tvMessageContent).text(spannedContent);
+
+
+
         }
 
-
         String date = DateUtils.getRelativeDateTimeString(mContetx,
-                conversation.getDate().getTime(),
+                conversation.message.updated_at.getTime(),
                 DateUtils.DAY_IN_MILLIS,
                 DateUtils.WEEK_IN_MILLIS,
                 DateUtils.FORMAT_ABBREV_ALL)
                 .toString();
 
         aq.id(R.id.tvMessageDate).text(date);
-        if(conversation.getUnreadMessagesCount() != 0 ) {
-            aq.id(R.id.tvPostsCount).text(Integer.toString(conversation.getUnreadMessagesCount()));
+        if(conversation.unread_count>0) {
+            aq.id(R.id.tvPostsCount).text(Integer.toString(conversation.unread_count));
             aq.id(R.id.llNewMessagesCountBackground).visibility(View.VISIBLE);
         }else{
             aq.id(R.id.tvPostsCount).text("");
             aq.id(R.id.llNewMessagesCountBackground).visibility(View.GONE);
         }
-        Picasso.with(mContetx)
-                .load(conversation.getAvatar())
-                .resize(184,184)
-                .onlyScaleDown()
-                .placeholder(R.drawable.ic_default_avatar)
-                .transform(new CircleTransform())
-                .error(R.drawable.ic_default_avatar)
-                .into(aq.id(R.id.ciProfileImage).getImageView());
+
+
+//        Picasso.with(mContetx)
+//                .load(conversation.getAvatar())
+//                .resize(184,184)
+//                .onlyScaleDown()
+//                .placeholder(R.drawable.ic_default_avatar)
+//                .transform(new CircleTransform())
+//                .error(R.drawable.ic_default_avatar)
+//                .into(aq.id(R.id.ciProfileImage).getImageView());
         aq.id(holder.container).clicked(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -139,7 +145,7 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
         notifyItemChanged(conversations.size());
     }
 
-    public void addViews(ArrayList<ConversationModel> messages){
+    public void addViews(ArrayList<Conversation> messages){
         conversations.addAll(messages);
         notifyDataSetChanged();
     }
@@ -148,7 +154,7 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
         conversations.clear();
         notifyDataSetChanged();
     }
-    public ArrayList<ConversationModel> getItems(){
+    public ArrayList<Conversation> getItems(){
         return conversations;
     }
     @Override

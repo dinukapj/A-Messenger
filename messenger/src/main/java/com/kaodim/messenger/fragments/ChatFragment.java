@@ -62,13 +62,6 @@ public  class ChatFragment extends Fragment{
     private boolean isRefreshing;
 
     private static final int REQUEST_CODE_SEND_FILE=1;
-    protected MessageModel fromJsonToMessageModel(String json){
-        return gson.fromJson(json, Message.class);
-    }
-    protected ChatModel fromJsonToChatModel(String json){
-        return gson.fromJson(json, Chat.class);
-    }
-
 
     public void commit(FragmentManager fragmentManager){
         fragmentManager.beginTransaction()
@@ -196,9 +189,9 @@ public  class ChatFragment extends Fragment{
 
 //            mixpanel.track(MixpanelEvents.sent_message); //TODO set mixpanel
             aq.id(R.id.etNewMessage).text("");
-            MessageModel newPost = fromJsonToMessageModel(json);
+//            MessageModel newPost = fromJsonToMessageModel(json);
             AMessenger.getInstance().trackMessageSent(getActivity().getClass());
-            adapter.addItem(newPost);
+//            adapter.addItem(newPost);
             adapter.notifyItemInserted(0);
             recyclerView.scrollToPosition(0);
         }else{
@@ -207,31 +200,31 @@ public  class ChatFragment extends Fragment{
         }
     }
 
-    public void callbackPerformGetThread(String url, String json, AjaxStatus status) {
-        Log.d("ChatFragment", url);
-        if (json != null) {
-            Log.d("get Thread result", json.toString());
-            ChatModel chat = fromJsonToChatModel(json);
-            conversationId = chat.getConversationId();
-
-            if (isRefreshing){
-                adapter.clear();
-                currentPage=1;
-                Log.d("callbackGetMessage", "refresh "+currentPage);
-            }else{
-                if (chat.getMessages().size() > 0)
-                    currentPage++;
-            }
-            adapter.addItems(chat.getMessages());
-            adapter.notifyDataSetChanged();
-        } else {
-            Log.d("get Thread error", status.getError());
-        }
-        adapter.updateFooter(false);
-        isLoading = false;
-        isRefreshing = false;
-
-    }
+//    public void callbackPerformGetThread(String url, String json, AjaxStatus status) {
+//        Log.d("ChatFragment", url);
+//        if (json != null) {
+//            Log.d("get Thread result", json.toString());
+//            ChatModel chat = fromJsonToChatModel(json);
+//            conversationId = chat.getConversationId();
+//
+//            if (isRefreshing){
+//                adapter.clear();
+//                currentPage=1;
+//                Log.d("callbackGetMessage", "refresh "+currentPage);
+//            }else{
+//                if (chat.getMessages().size() > 0)
+//                    currentPage++;
+//            }
+//            adapter.addItems(chat.getMessages());
+//            adapter.notifyDataSetChanged();
+//        } else {
+//            Log.d("get Thread error", status.getError());
+//        }
+//        adapter.updateFooter(false);
+//        isLoading = false;
+//        isRefreshing = false;
+//
+//    }
     public void clickedSendMessage(){
         String content =  aq.id(R.id.etNewMessage).getText().toString();
         if (TextUtils.isEmpty(content)){return;}

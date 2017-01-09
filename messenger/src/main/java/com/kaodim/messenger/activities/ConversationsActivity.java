@@ -14,10 +14,12 @@ import android.util.Log;
 import android.view.MenuItem;
 
 import com.androidquery.AQuery;
+import com.androidquery.callback.AjaxCallback;
 import com.androidquery.callback.AjaxStatus;
 import com.kaodim.messenger.R;
 import com.kaodim.messenger.adapters.ConversationsAdapter;
 import com.kaodim.messenger.models.Chat;
+import com.kaodim.messenger.models.Conversation;
 import com.kaodim.messenger.models.ConversationModel;
 import com.kaodim.messenger.recievers.MessageReciever;
 import com.kaodim.messenger.tools.AMessenger;
@@ -29,7 +31,7 @@ import java.util.ArrayList;
  * Created by Kanskiy on 11/10/2016.
  */
 
-public class ConversationsActivity extends AppCompatActivity  implements SwipeRefreshLayout.OnRefreshListener  {
+public abstract class  ConversationsActivity extends AppCompatActivity  implements SwipeRefreshLayout.OnRefreshListener  {
 
 
     private final String TAG = getClass().getName();
@@ -43,6 +45,11 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
     private int currentPage;
     private Boolean isLoading;
     private int pastVisiblesItems, visibleItemCount, totalItemCount;
+
+
+    public abstract void getMessages(int page);
+
+
 
     private BroadcastReceiver mMessageReceiver = new MessageReciever() {
         @Override
@@ -92,15 +99,12 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
                 }
             }
         });
-        adapter  = new ConversationsAdapter(this,new ArrayList<ConversationModel>(),new ConversationsAdapter.OnItemClickListener() {
+        adapter  = new ConversationsAdapter(this,new ArrayList<Conversation>(),new ConversationsAdapter.OnItemClickListener() {
 
             @Override
-            public void onItemClick(int position, ConversationModel conversation) {
+            public void onItemClick(int position, Conversation conversation) {
                 Intent intent = new Intent(mContext, ChatActivity.class);
-                intent.putExtra(ChatActivity.EXTRA_INCOMING_MESSAGE_USER_NAME, conversation.getName());
-                intent.putExtra(ChatActivity.EXTRA_CONVERSATION_ID, conversation.getId());
-                intent.putExtra(ChatActivity.EXTRA_INCOMING_MESSAGE_AVATAR, conversation.getAvatar());
-                intent.putExtra(ChatActivity.EXTRA_CHAT_CONTEXT_ID, conversation.getChatContextId());
+                intent.putExtra(ChatActivity.EXTRA_CHAT_GROUP_ID, conversation.message.group_id);
                 startActivity(intent);
             }
         });
@@ -112,13 +116,7 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
         mSwipeView.setOnRefreshListener(this);
         mSwipeView.setColorSchemeColors(ContextCompat.getColor(this, R.color.colorAccent),ContextCompat.getColor(this,R.color.colorPrimary),ContextCompat.getColor(this,R.color.colorAccent));
     }
-    public void getMessages(int page) {
-        int progressBar=0;
-        if (adapter.getItemCount()<1){
-            progressBar = R.id.progressBar;
-        }
-        aq.progress(progressBar).ajax(AMessenger.getInstance().getConversationUrl(page), String.class, this, "callbackPerformGetMessage");
-    }
+
 
 
 
@@ -169,56 +167,53 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
         });
     }
 
-    public void callbackPerformGetMessage(String url, String json, AjaxStatus status) {
-        Log.d(TAG, url);
-        if (json != null) {
+    public void onNewItems( ArrayList<Conversation> mMessages){
+        if (mSwipeView.isRefreshing()){
+            adapter.clear();
+            currentPage=1;
+            Log.d("callbackGetMessage", "refresh "+currentPage);
 
-            ArrayList<ConversationModel> mMessages = AMessenger.getInstance().toConversationModelArray(json);
-            if (mSwipeView.isRefreshing()){
-                adapter.clear();
-                currentPage=1;
-                Log.d("callbackGetMessage", "refresh "+currentPage);
-
-                if (mMessages.size() == 0) {
-                    aq.id(R.id.llNoMessages).visible();
-                    aq.id(R.id.tvNoItemsTitle).text("");
-                    aq.id(R.id.tvNoItemsText).text(getString(R.string.messenger_no_conversations));
-                }
-                else {
-                    aq.id(R.id.llNoMessages).gone();
-                    if (currentPage==1){
-                        NotificationManager.updateNotifications(getUnreadConversations(mMessages), getApplicationContext());
-                    }
-                }
-            }else{
-                if (mMessages.size()>0)
-                    currentPage++;
-                Log.d("callbackGetMessage", "load more "+currentPage);
+            if (mMessages.size() == 0) {
+                aq.id(R.id.llNoMessages).visible();
+                aq.id(R.id.tvNoItemsTitle).text("");
+                aq.id(R.id.tvNoItemsText).text(getString(R.string.messenger_no_conversations));
             }
-            adapter.addViews(mMessages);
-            Log.d("get messages result", json.toString());
-        } else {
-            aq.id(R.id.llNoMessages).visible();
-            aq.id(R.id.tvNoItemsTitle).text("");
-            aq.id(R.id.tvNoItemsText).text(getString(R.string.messenger_HTTP_RANDOM_ERROR));
-            Log.d("get messages error", status.getError());
-        }
-        adapter.updateFooter(false);
-        mSwipeView.setRefreshing(false);
-        isLoading=false;
-
-    }
-    private ArrayList<String> getUnreadConversations(ArrayList<ConversationModel> conversationModels){
-        ArrayList<String> ids = new ArrayList<>();
-        for (ConversationModel model : conversationModels){
-            if (model.getUnreadMessagesCount()>0){
-                ids.add(model.getId());
+            else {
+                aq.id(R.id.llNoMessages).gone();
+                if (currentPage==1){
+//                    NotificationManager.updateNotifications(getUnreadConversations(mMessages), getApplicationContext());
+                }
             }
+        }else{
+            if (mMessages.size()>0)
+                currentPage++;
+            Log.d("callbackGetMessage", "load more "+currentPage);
         }
-        return ids;
+        adapter.addViews(mMessages);
+        toggleLoading(false);
     }
+    public void onNewItemsFailed(String errorTitle, String errorDetails){
+        aq.id(R.id.llNoMessages).visible();
+        aq.id(R.id.tvNoItemsTitle).text(errorTitle);
+        aq.id(R.id.tvNoItemsText).text(getString(R.string.messenger_HTTP_RANDOM_ERROR));
+        toggleLoading(false);
+    }
+    private void toggleLoading(boolean shouldShow){
+        adapter.updateFooter(shouldShow);
+        mSwipeView.setRefreshing(shouldShow);
+        isLoading=!shouldShow;
+    }
+//    private ArrayList<String> getUnreadConversations(ArrayList<Conversation> conversations){
+//        ArrayList<String> ids = new ArrayList<>();
+//        for (Conversation model : conversations){
+//            if (model.unread_count>0){
+//                ids.add(model.message.id);
+//            }
+//        }
+//        return ids;
+//    }
     //Here Builder
-    public  static class Builder {
+    public  static abstract class Builder {
         private  Bundle args;
         public Builder() {
             args  = new Bundle();
@@ -229,11 +224,14 @@ public class ConversationsActivity extends AppCompatActivity  implements SwipeRe
         }
         private Intent buildIntent(Context context) {
             Log.d("ConversationsActivity", "intent: creating Intent");
-            Intent intent = new Intent(context, ConversationsActivity.class);
+            Intent intent = new Intent(context, getChildActivityClass());
             intent.putExtras(this.args);
             return intent;
         }
+    protected abstract Class getChildActivityClass();
+
     }
+
 
 
 }

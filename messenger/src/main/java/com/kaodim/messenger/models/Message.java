@@ -7,49 +7,17 @@ import java.util.Date;
  */
 
 public class Message implements MessageModel{
-
-    private String id;
-    private boolean isReply;
-    private Date createdAt;
-    private Content content;
-
-
-
-
-    public class Content implements MessageModel.Content{
-        String text;
-        Attachment attachment;
-        @Override
-        public String getText() {
-            return text;
-        }
-
-        @Override
-        public Attachment getAttachment() {
-            return attachment;
-        }
-        public class Attachment implements MessageModel.Content.Attachment{
-            private String original;
-            private String thumb;
-            private String fileName;
-
-            @Override
-            public String getOriginal() {
-                return original;
-            }
-
-            @Override
-            public String getThumb() {
-                return thumb;
-            }
-
-            @Override
-            public String getFileName() {
-                return fileName;
-            }
-        }
-    }
-
+    public String id;
+    public String sender_id;
+    public String receiver_id;
+    public String group_id;
+    public String name;
+    public Content content;
+    public Boolean read;
+    public Boolean spam;
+    public Date created_at;
+    public Date updated_at;
+    public Attachment attachment;
 
     @Override
     public String getId() {
@@ -58,18 +26,27 @@ public class Message implements MessageModel{
 
     @Override
     public Boolean getIsOutgoingMessage() {
-        return isReply;
+        return false;
     }
 
     @Override
     public Date getDate() {
-        return createdAt;
+        return updated_at;
     }
 
     @Override
     public MessageModel.Content getContent() {
-        return content;
+        return null;
     }
 
+    public class Content{
+        public String text;
+        public String attachment_file_id;
+
+        public class Location{
+            public float latitude;
+            public float longitude;
+        }
+    }
 
 }
