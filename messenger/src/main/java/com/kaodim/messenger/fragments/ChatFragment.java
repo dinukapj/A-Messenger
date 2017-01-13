@@ -27,7 +27,6 @@ import com.kaodim.messenger.R;
 import com.kaodim.messenger.activities.PreviewActivity;
 import com.kaodim.messenger.adapters.ChatAdapter;
 import com.kaodim.messenger.adapters.ConversationsAdapter;
-import com.kaodim.messenger.models.Chat;
 import com.kaodim.messenger.models.ChatModel;
 import com.kaodim.messenger.models.ConversationModel;
 import com.kaodim.messenger.models.Message;
@@ -49,7 +48,7 @@ import static android.app.Activity.RESULT_OK;
  * Created by Kanskiy on 18/10/2016.
  */
 
-public  class ChatFragment extends Fragment{
+public   class ChatFragment extends Fragment{
     private AQuery aq;
     private ChatAdapter adapter;
     private RecyclerView recyclerView;
@@ -62,6 +61,13 @@ public  class ChatFragment extends Fragment{
     private boolean isRefreshing;
 
     private static final int REQUEST_CODE_SEND_FILE=1;
+
+    public static final String EXTRA_GROUP_ID = "extra_group_id";
+    public static final String EXTRA_OUTGOING_MESSAGE_USER_ID = "extra_outgoing_message_user_id";
+
+    protected void getMessages(int page){
+
+    }
 
     public void commit(FragmentManager fragmentManager){
         fragmentManager.beginTransaction()
@@ -89,15 +95,15 @@ public  class ChatFragment extends Fragment{
         getMessages(1);
     }
 
-    public static ChatFragment newInstance(String conversationId, String incommingMessageAvatar) {
+    public static ChatFragment newInstance(String groupId, String outgoingMessageUserId) {
         ChatFragment fragment = new ChatFragment();
         Bundle b = new Bundle();
-        b.putSerializable("extra_chat_model_class", ChatModel.class );
-        b.putString("extra_id",conversationId );
-        b.putString("extra_incomming_message_avatar",incommingMessageAvatar );
+                b.putString(EXTRA_GROUP_ID,groupId );
+                b.putString(EXTRA_OUTGOING_MESSAGE_USER_ID, outgoingMessageUserId );
         fragment.setArguments(b);
         return fragment;
     }
+
 
     @Nullable
     @Override
@@ -112,6 +118,7 @@ public  class ChatFragment extends Fragment{
         }
 
         incommingMessageAvatar = b.getString("extra_incomming_message_avatar");
+        String outgoingUserId = b.getString(ChatFragment.EXTRA_OUTGOING_MESSAGE_USER_ID);
         isLoading = false;
         currentPage = 0;
 
@@ -119,7 +126,7 @@ public  class ChatFragment extends Fragment{
         aq = new AQuery(rootView);
         gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").create();
-        initializeRecyclerView(rootView, incommingMessageAvatar);
+        initializeRecyclerView(rootView, incommingMessageAvatar, outgoingUserId);
         aq.id(R.id.etNewMessage).getEditText().clearComposingText();
         aq.id(R.id.llSendNewMessage).clicked(this, "clickedSendMessage");
         aq.id(R.id.llOpenCamera).clicked(this, "onllOpenCameraClicked");
@@ -137,7 +144,7 @@ public  class ChatFragment extends Fragment{
         cameraIntent.putExtra("intentType",PreviewActivity.INTENT_TYPE_SELECTION);
         startActivityForResult(cameraIntent,REQUEST_CODE_SEND_FILE);
     }
-    private void initializeRecyclerView(View container, String avatar){
+    private void initializeRecyclerView(View container, String avatar, String outgoingUserId){
         recyclerView = (RecyclerView)container.findViewById(R.id.rvMessageThread);
         final LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -148,7 +155,7 @@ public  class ChatFragment extends Fragment{
         itemAnimator.setAddDuration(1000);
         itemAnimator.setRemoveDuration(1000);
         recyclerView.setItemAnimator(itemAnimator);
-        adapter = new ChatAdapter(getContext(), new ArrayList<MessageModel>(),avatar);
+        adapter = new ChatAdapter(getContext(), new ArrayList<Message>(),outgoingUserId, avatar);
         recyclerView.setAdapter(adapter);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -175,56 +182,24 @@ public  class ChatFragment extends Fragment{
             }
         });
     }
-    public void getMessages(int page) {
-        int progressBar=0;
-        if (recyclerView.getAdapter().getItemCount()<1){
-            progressBar = R.id.progressBar;
-        }
-        aq.progress(progressBar).ajax(AMessenger.getInstance().getChatUrl(conversationId, page), String.class, this, "callbackPerformGetThread");
-    }
-
-    public void callbackPerformSendMessage(String url, String  json, AjaxStatus status){
-
-        if(json != null){
-
-//            mixpanel.track(MixpanelEvents.sent_message); //TODO set mixpanel
-            aq.id(R.id.etNewMessage).text("");
-//            MessageModel newPost = fromJsonToMessageModel(json);
-            AMessenger.getInstance().trackMessageSent(getActivity().getClass());
-//            adapter.addItem(newPost);
-            adapter.notifyItemInserted(0);
-            recyclerView.scrollToPosition(0);
+    public  void onNewMessagesReceived(ArrayList<Message> messages){
+        if (isRefreshing){
+            adapter.clear();
+            currentPage=1;
+            Log.d("callbackGetMessage", "refresh "+currentPage);
         }else{
-            Log.d("send message error", status.getError()) ;
-//            mixpanel.track(MixpanelEvents.sent_message_failed); //TODO add mixpanel event
+            if (messages.size() > 0)
+                currentPage++;
         }
+        adapter.addItems(messages);
+        adapter.notifyDataSetChanged();
+        toggleLoadingViews(false);
     }
-
-//    public void callbackPerformGetThread(String url, String json, AjaxStatus status) {
-//        Log.d("ChatFragment", url);
-//        if (json != null) {
-//            Log.d("get Thread result", json.toString());
-//            ChatModel chat = fromJsonToChatModel(json);
-//            conversationId = chat.getConversationId();
-//
-//            if (isRefreshing){
-//                adapter.clear();
-//                currentPage=1;
-//                Log.d("callbackGetMessage", "refresh "+currentPage);
-//            }else{
-//                if (chat.getMessages().size() > 0)
-//                    currentPage++;
-//            }
-//            adapter.addItems(chat.getMessages());
-//            adapter.notifyDataSetChanged();
-//        } else {
-//            Log.d("get Thread error", status.getError());
-//        }
-//        adapter.updateFooter(false);
-//        isLoading = false;
-//        isRefreshing = false;
-//
-//    }
+    private void toggleLoadingViews(boolean shouldShow){
+        adapter.updateFooter(shouldShow);
+        isLoading = shouldShow;
+        isRefreshing = shouldShow;
+    }
     public void clickedSendMessage(){
         String content =  aq.id(R.id.etNewMessage).getText().toString();
         if (TextUtils.isEmpty(content)){return;}
@@ -272,7 +247,6 @@ public  class ChatFragment extends Fragment{
         if (resultCode!= RESULT_OK){
             return;
         }
-
         switch (requestCode){
             case REQUEST_CODE_SEND_FILE:
                 String resultCaption = data.getStringExtra("resultCaption");

@@ -23,6 +23,7 @@ public class ChatActivity extends BaseBackButtonActivity {
     public static final String EXTRA_INCOMING_MESSAGE_USER_NAME = "extra_incoming_message_user_name";
     public static final String EXTRA_CHAT_CONTEXT_ID = "extra_chat_context_id";
     public static final String EXTRA_CHAT_GROUP_ID= "extra_group_id";
+    public static final String Extra_CHAT_FRAGMENT_CHILD_CLASS = "extra_chat_fragment_child_class";
 
 
     String conversationId;

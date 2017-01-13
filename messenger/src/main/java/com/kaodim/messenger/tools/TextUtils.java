@@ -10,6 +10,9 @@ import android.text.format.DateUtils;
  */
 
 public class TextUtils {
+    public static boolean isEmpty(String string){
+        return android.text.TextUtils.isEmpty(string);
+    }
     public static String getDateString(Long date, Context mContext){
         if (date==null){
             return "";

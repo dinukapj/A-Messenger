@@ -18,7 +18,6 @@ import com.androidquery.callback.AjaxCallback;
 import com.androidquery.callback.AjaxStatus;
 import com.kaodim.messenger.R;
 import com.kaodim.messenger.adapters.ConversationsAdapter;
-import com.kaodim.messenger.models.Chat;
 import com.kaodim.messenger.models.Conversation;
 import com.kaodim.messenger.models.ConversationModel;
 import com.kaodim.messenger.recievers.MessageReciever;
@@ -36,7 +35,6 @@ public abstract class  ConversationsActivity extends AppCompatActivity  implemen
 
     private final String TAG = getClass().getName();
 
-
     private RecyclerView recyclerView;
     private ConversationsAdapter adapter;
     private SwipeRefreshLayout mSwipeView;
@@ -46,15 +44,14 @@ public abstract class  ConversationsActivity extends AppCompatActivity  implemen
     private Boolean isLoading;
     private int pastVisiblesItems, visibleItemCount, totalItemCount;
 
-
     public abstract void getMessages(int page);
-
+    public abstract Class getChatFragmentChildClass();
 
 
     private BroadcastReceiver mMessageReceiver = new MessageReciever() {
         @Override
         public void onReceive(Context context, Intent intent) {
-          refresh();
+            refresh();
         }
     };
 
@@ -104,6 +101,7 @@ public abstract class  ConversationsActivity extends AppCompatActivity  implemen
             @Override
             public void onItemClick(int position, Conversation conversation) {
                 Intent intent = new Intent(mContext, ChatActivity.class);
+                intent.putExtra(ChatActivity.Extra_CHAT_FRAGMENT_CHILD_CLASS,getChatFragmentChildClass());
                 intent.putExtra(ChatActivity.EXTRA_CHAT_GROUP_ID, conversation.message.group_id);
                 startActivity(intent);
             }
@@ -116,9 +114,6 @@ public abstract class  ConversationsActivity extends AppCompatActivity  implemen
         mSwipeView.setOnRefreshListener(this);
         mSwipeView.setColorSchemeColors(ContextCompat.getColor(this, R.color.colorAccent),ContextCompat.getColor(this,R.color.colorPrimary),ContextCompat.getColor(this,R.color.colorAccent));
     }
-
-
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -203,7 +198,7 @@ public abstract class  ConversationsActivity extends AppCompatActivity  implemen
         mSwipeView.setRefreshing(shouldShow);
         isLoading=!shouldShow;
     }
-//    private ArrayList<String> getUnreadConversations(ArrayList<Conversation> conversations){
+    //    private ArrayList<String> getUnreadConversations(ArrayList<Conversation> conversations){
 //        ArrayList<String> ids = new ArrayList<>();
 //        for (Conversation model : conversations){
 //            if (model.unread_count>0){
@@ -228,7 +223,7 @@ public abstract class  ConversationsActivity extends AppCompatActivity  implemen
             intent.putExtras(this.args);
             return intent;
         }
-    protected abstract Class getChildActivityClass();
+        protected abstract Class getChildActivityClass();
 
     }
 

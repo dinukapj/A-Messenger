@@ -20,6 +20,7 @@ import com.androidquery.callback.AjaxCallback;
 import com.androidquery.callback.AjaxStatus;
 import com.kaodim.messenger.R;
 import com.kaodim.messenger.activities.ImageViewerActivity;
+import com.kaodim.messenger.models.Message;
 import com.kaodim.messenger.models.MessageModel;
 import com.kaodim.messenger.tools.Blur;
 import com.kaodim.messenger.tools.CircleTransform;
@@ -40,8 +41,9 @@ import java.util.Arrays;
 
 public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
     private LayoutInflater mInflater;
-    private ArrayList<MessageModel> messages;
+    private ArrayList<Message> messages;
     private String smbdysAvatar;
+    private String outgoingUserId;
     private Context mContext;
     private boolean shouldShowFooter;
 
@@ -55,8 +57,6 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public View convertView;
         int rowType;
-
-
         public ViewHolder(View v, int rowType) {
             super(v);
             convertView = v;
@@ -64,9 +64,10 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
         }
     }
 
-    public ChatAdapter(final Context mContext, ArrayList<MessageModel> posts, String smbdysAvatar) {
+    public ChatAdapter(final Context mContext, ArrayList<Message> posts, String outgoingUserId, String smbdysAvatar) {
         this.mContext =mContext;
         this.messages = posts;
+        this.outgoingUserId = outgoingUserId;
         this.smbdysAvatar = smbdysAvatar;
         mInflater = LayoutInflater.from(mContext);
         blurTransformation = new Transformation() {
@@ -86,7 +87,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
 
     @Override
     public ChatAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
-                                                              int viewType) {
+                                                     int viewType) {
         View v=null;
         switch (viewType) {
             case TYPE_MESSAGE_ME:
@@ -110,12 +111,20 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
             return TYPE_FOOTER;
         }
 
-        if (messages.get(position).getIsOutgoingMessage()){
+        if (isOutgoingMessage(outgoingUserId, messages.get(position).sender_id)){
             return TYPE_MESSAGE_ME;
         }else{
             return TYPE_MESSAGE_SMBDY;
         }
     }
+    private boolean isOutgoingMessage(String outgoingUserId, String messageSenderId){
+        if (outgoingUserId.equalsIgnoreCase(messageSenderId)){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
     public void updateFooter(boolean shouldShowFooter){
         this.shouldShowFooter=shouldShowFooter;
         notifyItemChanged(messages.size());
@@ -133,11 +142,11 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
             return ;
         }
 
-        final MessageModel message = messages.get(position);
+        final Message message = messages.get(position);
         if (message==null){
             return;
         }
-        String date = TextUtils.getDateString(message.getDate().getTime(), aq.getContext());
+        String date = TextUtils.getDateString(message.updated_at.getTime(), aq.getContext());
         if (getItemViewType(position) == TYPE_MESSAGE_SMBDY ){
             Picasso.with(mContext)
                     .load(smbdysAvatar)
@@ -168,21 +177,21 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
 
         }
 
-        if (message.getContent()==null){
+        if (message.content==null){
             return;
         }
-        String content = message.getContent().getText();
-        if (content!=null){
-            aq.id(R.id.tvContent).text(TextUtils.fromHtml(content));
+        String content = message.content.text;
+        if (TextUtils.isEmpty(content)){
+            aq.id(R.id.tvContent).text(content);
         }else {
             aq.id(R.id.tvContent).clear();
         }
         aq.id(R.id.tvPostDate).text(date);
-        if (message.getContent().getAttachment()==null){
+        if (message.attachment==null){
             aq.id(R.id.llAttachment).gone();
             return;
         }
-        switch (FileHelper.getFileExtensionFromString(message.getContent().getAttachment().getOriginal())) {
+        switch (FileHelper.getFileExtensionFromString(message.attachment.url)) {
             case FileHelper.FILE_DOC:
             case FileHelper.FILE_DOCX:
             case FileHelper.FILE_TXT:
@@ -190,21 +199,21 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
                 aq.id(R.id.llAttachment).visible();
                 aq.id(R.id.cardDocument).visible();
                 aq.id(R.id.ivAttachmentImage).gone();
-                aq.id(R.id.tvFileName).text(message.getContent().getAttachment().getFileName());
+                aq.id(R.id.tvFileName).text(message.attachment.file_filename);
                 aq.id(R.id.llAttachment).clicked(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         try {
-                            if(new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)+"/"+message.getContent().getAttachment().getFileName()).exists()){
-                                openFile(new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)+"/"+message.getContent().getAttachment().getFileName()), mContext, message.getContent().getAttachment().getOriginal());
+                            if(new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)+"/"+message.attachment.file_filename).exists()){
+                                openFile(new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)+"/"+message.attachment.file_filename), mContext, message.attachment.url);
                                 return;
                             }
-                            final File file = FileHelper.createFileNamed(message.getContent().getAttachment().getFileName(), Environment.DIRECTORY_DOWNLOADS);
-                            aq.progress(new ProgressDialog(mContext)).download(message.getContent().getAttachment().getOriginal(), file, new AjaxCallback<File>() {
+                            final File file = FileHelper.createFileNamed(message.attachment.file_filename, Environment.DIRECTORY_DOWNLOADS);
+                            aq.progress(new ProgressDialog(mContext)).download(message.attachment.url, file, new AjaxCallback<File>() {
                                 @Override
                                 public void callback(String url, File object, AjaxStatus status) {
                                     super.callback(url, object, status);
-                                    openFile(file, mContext, message.getContent().getAttachment().getOriginal());
+                                    openFile(file, mContext, message.attachment.url);
                                     Toast.makeText(mContext, "Attachment downloaded", Toast.LENGTH_LONG).show();
                                 }
                             });
@@ -221,38 +230,45 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
                 aq.id(R.id.cardDocument).gone();
                 aq.id(R.id.ivAttachmentImage).visible();
                 Picasso.with(mContext)
-                        .load(message.getContent().getAttachment().getThumb())
-                        .placeholder(null)
-                        .transform(blurTransformation)
-                        .into(aq.id(R.id.ivAttachmentImage).getImageView(), new Callback() {
-                            @Override
-                            public void onSuccess() {
-                                Picasso.with(mContext)
-                                        .load(message.getContent().getAttachment().getOriginal())
-                                        .resize(800, 600)
-                                        .centerCrop()
-                                        .transform(new RoundedCornersTransform(20,0))
-                                        .placeholder(aq.id(R.id.ivAttachmentImage).getImageView().getDrawable())
-                                        .into(aq.id(R.id.ivAttachmentImage).getImageView());
-                            }
-                            @Override
-                            public void onError() {
-                                Picasso.with(mContext)
-                                        .load(message.getContent().getAttachment().getOriginal())
-                                        .resize(1000, 1000)
-                                        .centerCrop()
-                                        .transform(new RoundedCornersTransform(20,0))
-                                        .placeholder(aq.id(R.id.ivAttachmentImage).getImageView().getDrawable())
-                                        .into(aq.id(R.id.ivAttachmentImage).getImageView());
-                                Log.d("Picasso", "error loading thumb: " + message.getContent().getAttachment().getThumb());
-                            }
-                        });
+                        .load(message.attachment.url)
+                        .resize(800, 600)
+                        .centerCrop()
+                        .transform(new RoundedCornersTransform(20,0))
+                        .placeholder(aq.id(R.id.ivAttachmentImage).getImageView().getDrawable())
+                        .into(aq.id(R.id.ivAttachmentImage).getImageView());
+//                Picasso.with(mContext)
+//                        .load(message.attachment.url)
+//                        .placeholder(null)
+//                        .transform(blurTransformation)
+//                        .into(aq.id(R.id.ivAttachmentImage).getImageView(), new Callback() {
+//                            @Override
+//                            public void onSuccess() {
+//                                Picasso.with(mContext)
+//                                        .load(message.attachment.url)
+//                                        .resize(800, 600)
+//                                        .centerCrop()
+//                                        .transform(new RoundedCornersTransform(20,0))
+//                                        .placeholder(aq.id(R.id.ivAttachmentImage).getImageView().getDrawable())
+//                                        .into(aq.id(R.id.ivAttachmentImage).getImageView());
+//                            }
+//                            @Override
+//                            public void onError() {
+//                                Picasso.with(mContext)
+//                                        .load(message.attachment.url)
+//                                        .resize(1000, 1000)
+//                                        .centerCrop()
+//                                        .transform(new RoundedCornersTransform(20,0))
+//                                        .placeholder(aq.id(R.id.ivAttachmentImage).getImageView().getDrawable())
+//                                        .into(aq.id(R.id.ivAttachmentImage).getImageView());
+//                                Log.d("Picasso", "error loading thumb: " + message.attachment.);
+//                            }
+//                        });
                 aq.id(R.id.ivAttachmentImage).clicked(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         Intent intent = new Intent(mContext, ImageViewerActivity.class);
                         intent.putExtra("currentPosition", 0);
-                        intent.putStringArrayListExtra("photos", new ArrayList<String>(Arrays.asList(new String[]{ message.getContent().getAttachment().getOriginal()})));
+                        intent.putStringArrayListExtra("photos", new ArrayList<String>(Arrays.asList(new String[]{ message.attachment.url})));
                         mContext.startActivity(intent);
                     }
                 });
@@ -274,10 +290,10 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
         Toast.makeText(context, "No application to open the file found", Toast.LENGTH_LONG).show();
 
     }
-    public void addItems(ArrayList<? extends MessageModel> messages){
+    public void addItems(ArrayList<Message> messages){
         this.messages.addAll(messages);
     }
-    public void addItem(MessageModel message){
+    public void addItem(Message message){
         messages.add(0,message);
     }
 

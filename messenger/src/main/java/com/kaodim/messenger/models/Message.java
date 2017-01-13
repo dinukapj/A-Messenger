@@ -6,7 +6,7 @@ import java.util.Date;
  * Created by Kanskiy on 19/10/2016.
  */
 
-public class Message implements MessageModel{
+public class Message {
     public String id;
     public String sender_id;
     public String receiver_id;
@@ -18,26 +18,6 @@ public class Message implements MessageModel{
     public Date created_at;
     public Date updated_at;
     public Attachment attachment;
-
-    @Override
-    public String getId() {
-        return id;
-    }
-
-    @Override
-    public Boolean getIsOutgoingMessage() {
-        return false;
-    }
-
-    @Override
-    public Date getDate() {
-        return updated_at;
-    }
-
-    @Override
-    public MessageModel.Content getContent() {
-        return null;
-    }
 
     public class Content{
         public String text;
