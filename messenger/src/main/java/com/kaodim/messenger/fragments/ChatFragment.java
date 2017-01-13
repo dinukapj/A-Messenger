@@ -48,13 +48,14 @@ import static android.app.Activity.RESULT_OK;
  * Created by Kanskiy on 18/10/2016.
  */
 
-public   class ChatFragment extends Fragment{
+public class ChatFragment extends Fragment{
     private AQuery aq;
     private ChatAdapter adapter;
     private RecyclerView recyclerView;
     protected Gson gson;
     String conversationId;
     String incommingMessageAvatar;
+    String outgoingUserId;
     private int pastVisiblesItems, visibleItemCount, totalItemCount;
     private int currentPage;
     private Boolean isLoading;
@@ -65,9 +66,11 @@ public   class ChatFragment extends Fragment{
     public static final String EXTRA_GROUP_ID = "extra_group_id";
     public static final String EXTRA_OUTGOING_MESSAGE_USER_ID = "extra_outgoing_message_user_id";
 
-    protected void getMessages(int page){
 
+    public interface OnChatFragmentListener{
+        void getMessageList(String conversationId, int page);
     }
+
 
     public void commit(FragmentManager fragmentManager){
         fragmentManager.beginTransaction()
@@ -91,8 +94,14 @@ public   class ChatFragment extends Fragment{
             isLoading=false;
             adapter.updateFooter(false);
         }
-        isRefreshing = true;
-        getMessages(1);
+        if (getActivity()!=null){
+            isRefreshing = true;
+            ((OnChatFragmentListener)getActivity()).getMessageList(conversationId, 1);
+        }
+
+
+
+
     }
 
     public static ChatFragment newInstance(String groupId, String outgoingMessageUserId) {
@@ -111,14 +120,14 @@ public   class ChatFragment extends Fragment{
         View rootView = inflater.inflate(R.layout.fragment_chat, container, false);
 
         Bundle b = getArguments();
-        conversationId = b.getString("extra_id");
+        conversationId = b.getString(EXTRA_GROUP_ID);
         if (android.text.TextUtils.isEmpty(conversationId)){
             Log.d("A-Messenger", "not chat id given");
             return rootView;
         }
 
         incommingMessageAvatar = b.getString("extra_incomming_message_avatar");
-        String outgoingUserId = b.getString(ChatFragment.EXTRA_OUTGOING_MESSAGE_USER_ID);
+        outgoingUserId = b.getString(ChatFragment.EXTRA_OUTGOING_MESSAGE_USER_ID);
         isLoading = false;
         currentPage = 0;
 
@@ -169,7 +178,9 @@ public   class ChatFragment extends Fragment{
                         if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) {
                             isLoading = true;
                             Log.v("...", "Last Item Wow !");
-                            getMessages(currentPage + 1);
+                            if (getActivity()!=null){
+                                ((OnChatFragmentListener)getActivity()).getMessageList(conversationId, currentPage + 1);
+                            }
                              new Handler().post( new Runnable() {
                                 public void run() {
                                     adapter.updateFooter(true);
@@ -194,6 +205,10 @@ public   class ChatFragment extends Fragment{
         adapter.addItems(messages);
         adapter.notifyDataSetChanged();
         toggleLoadingViews(false);
+    }
+    public void onNewMessagesFailed(String error){
+        toggleLoadingViews(false);
+        Toast.makeText(getActivity(), error, Toast.LENGTH_LONG).show();
     }
     private void toggleLoadingViews(boolean shouldShow){
         adapter.updateFooter(shouldShow);

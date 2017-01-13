@@ -16,12 +16,14 @@ import static com.kaodim.messenger.tools.ExtraKeeper.EXTRA_OUTGOING_USER_ID;
  * Created by Kanskiy on 12/01/2017.
  */
 
-public abstract class MessengerActivity extends BaseBackButtonActivity implements ConversationsFragment.OnConversationFragmentListener {
+public abstract class MessengerActivity extends BaseBackButtonActivity implements ConversationsFragment.OnConversationFragmentListener, ChatFragment.OnChatFragmentListener {
 
     private final String TAG = getClass().getName();
     protected abstract void getConversation(int page);
+    protected abstract void getMessages(String conversationId, int page);
     String outgoinUserId;
     protected ConversationsFragment conversationsFragment;
+    protected ChatFragment chatFragment;
 
 
     @Override
@@ -43,10 +45,13 @@ public abstract class MessengerActivity extends BaseBackButtonActivity implement
         getConversation(page);
     }
 
-
+    @Override
+    public void getMessageList(String conversationId, int page) {
+        getMessages(conversationId, page);
+    }
 
     private void goToChat(String groupId){
-        ChatFragment chatFragment = ChatFragment.newInstance(groupId, outgoinUserId);
+        chatFragment = ChatFragment.newInstance(groupId, outgoinUserId);
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.flRoot, chatFragment, groupId)
@@ -75,8 +80,9 @@ public abstract class MessengerActivity extends BaseBackButtonActivity implement
         public Builder() {
             args  = new Bundle();
         }
-        public void show(Context context) {
+        public void show(Context context, String userId) {
             Log.d("MessengerActivity", "show: showing MessengerActivity");
+            args.putString(EXTRA_OUTGOING_USER_ID, userId);
             context.startActivity(this.buildIntent(context));
         }
         private Intent buildIntent(Context context) {
