@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Environment;
 import android.support.v4.content.ContextCompat;
@@ -234,7 +235,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
                         .resize(800, 600)
                         .centerCrop()
                         .transform(new RoundedCornersTransform(20,0))
-                        .placeholder(aq.id(R.id.ivAttachmentImage).getImageView().getDrawable())
+                        .placeholder(new ColorDrawable(ContextCompat.getColor(mContext, R.color.black_10a)))
                         .into(aq.id(R.id.ivAttachmentImage).getImageView());
 //                Picasso.with(mContext)
 //                        .load(message.attachment.url)
