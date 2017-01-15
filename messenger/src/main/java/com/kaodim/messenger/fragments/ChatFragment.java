@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
 import com.androidquery.AQuery;
@@ -133,8 +134,23 @@ public class ChatFragment extends Fragment{
         aq.id(R.id.llOpenCamera).clicked(this, "onllOpenCameraClicked");
         aq.id(R.id.llattach).clicked(this, "onllAttachClicked");
         refresh();
+        aq.id(R.id.etNewMessage).getEditText().requestFocus();
+        showKeyBoard();
         return rootView;
     }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+    }
+    protected void showKeyBoard(){
+        if (isAdded() && getActivity()!=null) {
+            InputMethodManager imgr = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imgr.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
+        }
+    }
+
     public void onllOpenCameraClicked(){
         Intent cameraIntent = new Intent(getContext(), PreviewActivity.class);
         cameraIntent.putExtra("intentType",PreviewActivity.INTENT_TYPE_CAMERA);

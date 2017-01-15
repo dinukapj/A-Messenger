@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
+import android.view.inputmethod.InputMethodManager;
 
 import com.kaodim.messenger.R;
 import com.kaodim.messenger.fragments.ChatFragment;
@@ -72,8 +73,13 @@ public abstract class MessengerActivity extends BaseBackButtonActivity implement
         }
         else {
             setTitle(getString(R.string.messenger_title_conversation_activity));
+            hideKeyBoard();
             super.onBackPressed();
         }
+    }
+    protected  void hideKeyBoard(){
+            final InputMethodManager imm = (InputMethodManager)this.getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(getWindow().getCurrentFocus().getWindowToken(), 0);
     }
     //Here Builder
     public  static abstract class Builder {
