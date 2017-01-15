@@ -50,9 +50,8 @@ public class ConversationsFragment extends Fragment implements SwipeRefreshLayou
         }
     };
 
-
     public interface OnConversationFragmentListener {
-        void onConversationSelected(String groupId);
+        void onConversationSelected(String groupId, String conversationName);
         void getConversationList(int page);
     }
 
@@ -80,9 +79,7 @@ public class ConversationsFragment extends Fragment implements SwipeRefreshLayou
         tvNoItemsTitle = (TextView)v.findViewById(R.id.tvNoItemsTitle);
         tvNoItemsText = (TextView)v.findViewById(R.id.tvNoItemsText);
     }
-    public String getTitle(){
-        return getString(R.string.messenger_title_conversation_activity);
-    }
+
     private void initRecyclerView(View view){
         recyclerView = (RecyclerView)view.findViewById(R.id.rvConversations);
         final LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
@@ -118,7 +115,10 @@ public class ConversationsFragment extends Fragment implements SwipeRefreshLayou
 
             @Override
             public void onItemClick(int position, Conversation conversation) {
-                ((OnConversationFragmentListener)getActivity()).onConversationSelected(conversation.message.group_id);
+                if (getActivity()!=null){
+                    ((OnConversationFragmentListener)getActivity()).onConversationSelected(conversation.message.group_id, conversation.message.name);
+                }
+
             }
         });
         recyclerView.setAdapter(adapter);

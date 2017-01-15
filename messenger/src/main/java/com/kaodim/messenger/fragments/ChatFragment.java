@@ -20,20 +20,14 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.androidquery.AQuery;
-import com.androidquery.callback.AjaxStatus;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.kaodim.messenger.R;
 import com.kaodim.messenger.activities.PreviewActivity;
 import com.kaodim.messenger.adapters.ChatAdapter;
-import com.kaodim.messenger.adapters.ConversationsAdapter;
-import com.kaodim.messenger.models.ChatModel;
-import com.kaodim.messenger.models.ConversationModel;
 import com.kaodim.messenger.models.Message;
-import com.kaodim.messenger.models.MessageModel;
 import com.kaodim.messenger.recievers.MessageReciever;
 import com.kaodim.messenger.tools.AMessenger;
-import com.kaodim.messenger.tools.NotificationManager;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -63,8 +57,10 @@ public class ChatFragment extends Fragment{
 
     private static final int REQUEST_CODE_SEND_FILE=1;
 
+    public static final String EXTRA_CONVERSATION_NAME = "extra_conversation_name";
     public static final String EXTRA_GROUP_ID = "extra_group_id";
     public static final String EXTRA_OUTGOING_MESSAGE_USER_ID = "extra_outgoing_message_user_id";
+
 
 
     public interface OnChatFragmentListener{
@@ -104,7 +100,7 @@ public class ChatFragment extends Fragment{
 
     }
 
-    public static ChatFragment newInstance(String groupId, String outgoingMessageUserId) {
+    public static ChatFragment newInstance(String groupId,  String outgoingMessageUserId) {
         ChatFragment fragment = new ChatFragment();
         Bundle b = new Bundle();
                 b.putString(EXTRA_GROUP_ID,groupId );

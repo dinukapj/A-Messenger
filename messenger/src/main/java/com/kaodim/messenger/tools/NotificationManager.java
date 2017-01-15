@@ -11,8 +11,7 @@ import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.app.TaskStackBuilder;
 
 import com.kaodim.messenger.R;
-import com.kaodim.messenger.activities.ChatActivity;
-import com.kaodim.messenger.activities.ConversationsActivity;
+import com.kaodim.messenger.activities.MessengerActivity;
 import com.kaodim.messenger.database.DatabaseManager;
 import com.kaodim.messenger.models.MessagePushModel;
 import com.kaodim.messenger.recievers.MessageReciever;
@@ -54,78 +53,78 @@ public class NotificationManager {
         return false;
     }
     private static void sendSingleMessagePush(MessagePushModel pushModel, Context context){
-        Intent intent = new Intent(context, ChatActivity.class);
-        intent.putExtra(ChatActivity.EXTRA_CONVERSATION_ID, pushModel.conversationId);
-        intent.putExtra(ChatActivity.EXTRA_INCOMING_MESSAGE_USER_NAME, pushModel.sender);
-        PendingIntent pendingIntent =
-                TaskStackBuilder.create(context)
-                        .addNextIntent(new Intent(context, AMessenger.getInstance().getParentStackClass()))
-                        .addNextIntentWithParentStack(intent)
-                        .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-
-
-
-        NotificationManagerCompat notificationManager =
-                NotificationManagerCompat.from(context);
-
-        Bitmap largeIcon = BitmapFactory.decodeResource(context.getResources(),
-                R.drawable.ic_launcher);
-        Notification summaryNotification = new NotificationCompat.Builder(context)
-                .setContentTitle(pushModel.sender)
-                .setContentText(pushModel.message)
-                .setSmallIcon(R.drawable.ic_messages)
-                .setLargeIcon(largeIcon)
-                .setContentIntent(pendingIntent)
-                .setDefaults(DEFAULTS)
-                .setAutoCancel(true)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(pushModel.message))
-                .setPriority(2)
-                .build();
-        notificationManager.notify(NOTIFICATION_ID, summaryNotification);
+//        Intent intent = new Intent(context, ChatActivity.class);
+//        intent.putExtra(ChatActivity.EXTRA_CONVERSATION_ID, pushModel.conversationId);
+//        intent.putExtra(ChatActivity.EXTRA_INCOMING_MESSAGE_USER_NAME, pushModel.sender);
+//        PendingIntent pendingIntent =
+//                TaskStackBuilder.create(context)
+//                        .addNextIntent(new Intent(context, AMessenger.getInstance().getParentStackClass()))
+//                        .addNextIntentWithParentStack(intent)
+//                        .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+//
+//
+//
+//        NotificationManagerCompat notificationManager =
+//                NotificationManagerCompat.from(context);
+//
+//        Bitmap largeIcon = BitmapFactory.decodeResource(context.getResources(),
+//                R.drawable.ic_launcher);
+//        Notification summaryNotification = new NotificationCompat.Builder(context)
+//                .setContentTitle(pushModel.sender)
+//                .setContentText(pushModel.message)
+//                .setSmallIcon(R.drawable.ic_messages)
+//                .setLargeIcon(largeIcon)
+//                .setContentIntent(pendingIntent)
+//                .setDefaults(DEFAULTS)
+//                .setAutoCancel(true)
+//                .setStyle(new NotificationCompat.BigTextStyle().bigText(pushModel.message))
+//                .setPriority(2)
+//                .build();
+//        notificationManager.notify(NOTIFICATION_ID, summaryNotification);
 
     }
     private static void sendStackedNotification(ArrayList<MessagePushModel> pushes, Context context){
-        if (pushes.size()==0){
-            return;
-        }
-        Collections.reverse(pushes);
-        Intent intent =null;
-        if (isMoreThanOneConversation(pushes)){
-            intent =  new Intent(context, ConversationsActivity.class);
-        }else{
-            intent = new Intent(context, ChatActivity.class);
-            intent.putExtra(ChatActivity.EXTRA_CONVERSATION_ID, pushes.get(0).conversationId);
-            intent.putExtra(ChatActivity.EXTRA_INCOMING_MESSAGE_USER_NAME, pushes.get(0).sender);
-        }
-
-
-        PendingIntent pendingIntent =
-                TaskStackBuilder.create(context)
-                        .addNextIntent(new Intent(context, AMessenger.getInstance().getParentStackClass()))
-                        .addNextIntentWithParentStack(intent)
-                        .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-
-
-
-
-        NotificationManagerCompat notificationManager =
-                NotificationManagerCompat.from(context);
-
-        Bitmap largeIcon = BitmapFactory.decodeResource(context.getResources(),
-                R.drawable.ic_launcher);
-        Notification summaryNotification = new NotificationCompat.Builder(context)
-                .setContentTitle(context.getString(R.string.x_new_messages, pushes.size()+""))
-                .setContentText(pushes.get(0).message)
-                .setSmallIcon(R.drawable.ic_messages)
-                .setLargeIcon(largeIcon)
-                .setDefaults(DEFAULTS)
-                .setStyle(toInboxStyle(pushes))
-                .setContentIntent(pendingIntent)
-                .setGroupSummary(true)
-                .setAutoCancel(true)
-                .setPriority(2)
-                .build();
-        notificationManager.notify(NOTIFICATION_ID, summaryNotification);
+//        if (pushes.size()==0){
+//            return;
+//        }
+//        Collections.reverse(pushes);
+//        Intent intent =null;
+//        if (isMoreThanOneConversation(pushes)){
+//            intent =  new Intent(context, MessengerActivity.class);
+//        }else{
+//            intent = new Intent(context, ChatActivity.class);
+//            intent.putExtra(ChatActivity.EXTRA_CONVERSATION_ID, pushes.get(0).conversationId);
+//            intent.putExtra(ChatActivity.EXTRA_INCOMING_MESSAGE_USER_NAME, pushes.get(0).sender);
+//        }
+//
+//
+//        PendingIntent pendingIntent =
+//                TaskStackBuilder.create(context)
+//                        .addNextIntent(new Intent(context, AMessenger.getInstance().getParentStackClass()))
+//                        .addNextIntentWithParentStack(intent)
+//                        .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+//
+//
+//
+//
+//        NotificationManagerCompat notificationManager =
+//                NotificationManagerCompat.from(context);
+//
+//        Bitmap largeIcon = BitmapFactory.decodeResource(context.getResources(),
+//                R.drawable.ic_launcher);
+//        Notification summaryNotification = new NotificationCompat.Builder(context)
+//                .setContentTitle(context.getString(R.string.x_new_messages, pushes.size()+""))
+//                .setContentText(pushes.get(0).message)
+//                .setSmallIcon(R.drawable.ic_messages)
+//                .setLargeIcon(largeIcon)
+//                .setDefaults(DEFAULTS)
+//                .setStyle(toInboxStyle(pushes))
+//                .setContentIntent(pendingIntent)
+//                .setGroupSummary(true)
+//                .setAutoCancel(true)
+//                .setPriority(2)
+//                .build();
+//        notificationManager.notify(NOTIFICATION_ID, summaryNotification);
     }
     private static NotificationCompat.InboxStyle toInboxStyle(ArrayList<MessagePushModel> pushes){
         NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();

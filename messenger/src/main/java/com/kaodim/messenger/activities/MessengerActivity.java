@@ -1,14 +1,17 @@
 package com.kaodim.messenger.activities;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 
 import com.kaodim.messenger.R;
 import com.kaodim.messenger.fragments.ChatFragment;
 import com.kaodim.messenger.fragments.ConversationsFragment;
+import com.kaodim.messenger.tools.TextUtils;
 
 import static com.kaodim.messenger.tools.ExtraKeeper.EXTRA_OUTGOING_USER_ID;
 
@@ -31,13 +34,12 @@ public abstract class MessengerActivity extends BaseBackButtonActivity implement
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_messenger);
         outgoinUserId = getIntent().getStringExtra(EXTRA_OUTGOING_USER_ID);
-        conversationsFragment = ConversationsFragment.newInstance();
-        changeFragment(conversationsFragment);
+        goToConversations();
     }
 
     @Override
-    public void onConversationSelected(String groupId) {
-        goToChat(groupId);
+    public void onConversationSelected(String groupId, String conversationName) {
+        goToChat(groupId, conversationName);
     }
 
     @Override
@@ -49,14 +51,21 @@ public abstract class MessengerActivity extends BaseBackButtonActivity implement
     public void getMessageList(String conversationId, int page) {
         getMessages(conversationId, page);
     }
+    private void goToConversations(){
+        setTitle(getString(R.string.messenger_title_conversation_activity));
+        conversationsFragment = ConversationsFragment.newInstance();
+        changeFragment(conversationsFragment);
+    }
 
-    private void goToChat(String groupId){
+    private void goToChat(String groupId, String conversationName){
+        if (!TextUtils.isEmpty(conversationName)){
+            setTitle(conversationName);
+        }else{
+            setTitle(getString(R.string.messenger_title_messages));
+        }
+
         chatFragment = ChatFragment.newInstance(groupId, outgoinUserId);
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.flRoot, chatFragment, groupId)
-                .addToBackStack(groupId)
-                .commit();
+        changeFragment(chatFragment);
     }
     private void changeFragment(Fragment fragment){
         getSupportFragmentManager()
@@ -69,8 +78,10 @@ public abstract class MessengerActivity extends BaseBackButtonActivity implement
     public void onBackPressed(){
         if (getSupportFragmentManager().getBackStackEntryCount() == 1){
             finish();
+            overridePendingTransition(R.anim.stay, R.anim.slide_down);
         }
         else {
+            setTitle(getString(R.string.messenger_title_conversation_activity));
             super.onBackPressed();
         }
     }
@@ -84,6 +95,7 @@ public abstract class MessengerActivity extends BaseBackButtonActivity implement
             Log.d("MessengerActivity", "show: showing MessengerActivity");
             args.putString(EXTRA_OUTGOING_USER_ID, userId);
             context.startActivity(this.buildIntent(context));
+            ((Activity) context).overridePendingTransition(R.anim.slide_up, R.anim.stay);
         }
         private Intent buildIntent(Context context) {
             Log.d("MessengerActivity", "intent: creating Intent");
@@ -92,6 +104,5 @@ public abstract class MessengerActivity extends BaseBackButtonActivity implement
             return intent;
         }
         protected abstract Class getChildActivityClass();
-
     }
 }
