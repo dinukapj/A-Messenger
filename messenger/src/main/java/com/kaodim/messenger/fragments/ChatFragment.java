@@ -12,7 +12,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,6 +27,7 @@ import com.kaodim.messenger.adapters.ChatAdapter;
 import com.kaodim.messenger.models.Message;
 import com.kaodim.messenger.recievers.MessageReciever;
 import com.kaodim.messenger.tools.AMessenger;
+import com.kaodim.messenger.tools.TextUtils;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -57,14 +57,14 @@ public class ChatFragment extends Fragment{
 
     private static final int REQUEST_CODE_SEND_FILE=1;
 
-    public static final String EXTRA_CONVERSATION_NAME = "extra_conversation_name";
     public static final String EXTRA_GROUP_ID = "extra_group_id";
     public static final String EXTRA_OUTGOING_MESSAGE_USER_ID = "extra_outgoing_message_user_id";
 
 
 
     public interface OnChatFragmentListener{
-        void getMessageList(String conversationId, int page);
+        void getMessages(String conversationId, int page);
+        void sendMessage(String conversationId, String text, String latitude, String longitude, String fileUrl);
     }
 
 
@@ -92,19 +92,15 @@ public class ChatFragment extends Fragment{
         }
         if (getActivity()!=null){
             isRefreshing = true;
-            ((OnChatFragmentListener)getActivity()).getMessageList(conversationId, 1);
+            ((OnChatFragmentListener)getActivity()).getMessages(conversationId, 1);
         }
-
-
-
-
     }
 
     public static ChatFragment newInstance(String groupId,  String outgoingMessageUserId) {
         ChatFragment fragment = new ChatFragment();
         Bundle b = new Bundle();
-                b.putString(EXTRA_GROUP_ID,groupId );
-                b.putString(EXTRA_OUTGOING_MESSAGE_USER_ID, outgoingMessageUserId );
+        b.putString(EXTRA_GROUP_ID,groupId );
+        b.putString(EXTRA_OUTGOING_MESSAGE_USER_ID, outgoingMessageUserId );
         fragment.setArguments(b);
         return fragment;
     }
@@ -175,9 +171,9 @@ public class ChatFragment extends Fragment{
                             isLoading = true;
                             Log.v("...", "Last Item Wow !");
                             if (getActivity()!=null){
-                                ((OnChatFragmentListener)getActivity()).getMessageList(conversationId, currentPage + 1);
+                                ((OnChatFragmentListener)getActivity()).getMessages(conversationId, currentPage + 1);
                             }
-                             new Handler().post( new Runnable() {
+                            new Handler().post( new Runnable() {
                                 public void run() {
                                     adapter.updateFooter(true);
                                 }
@@ -189,7 +185,15 @@ public class ChatFragment extends Fragment{
             }
         });
     }
-    public  void onNewMessagesReceived(ArrayList<Message> messages){
+    public void onMessageSent(Message message){
+        aq.id(R.id.etNewMessage).clear();
+        adapter.addItem(message);
+        adapter.notifyItemChanged(0);
+    }
+    public void onMessageSendFailed(String errorDetails){
+        Toast.makeText(getActivity(), errorDetails, Toast.LENGTH_LONG).show();
+    }
+    public void onNewMessagesReceived(ArrayList<Message> messages){
         if (isRefreshing){
             adapter.clear();
             currentPage=1;
@@ -214,18 +218,16 @@ public class ChatFragment extends Fragment{
     public void clickedSendMessage(){
         String content =  aq.id(R.id.etNewMessage).getText().toString();
         if (TextUtils.isEmpty(content)){return;}
-        sendPost(content,null, 0);
+        sendPost(conversationId, content,null, null, null);
     }
 
-    public void sendPost(String content, File attachment, int progress){
-        Map<String, Object> params = new HashMap<String, Object>();
-        if (!TextUtils.isEmpty(content)){
-            params.put("content",content.replaceAll("(\r\n|\n)","<br />"));
+    public void sendPost(String conversationId, String text, String latitude, String longitude, String fileUrl){
+        if (!TextUtils.isEmpty(text)){
+            text = text.replaceAll("(\r\n|\n)","<br />");
         }
-        if (attachment!=null){
-            params.put("attachment", attachment);
+        if (getActivity()!=null){
+            ((OnChatFragmentListener)getActivity()).sendMessage(conversationId,text, latitude, longitude, fileUrl );
         }
-        aq.progress(progress).ajax(AMessenger.getInstance().getChatUrl(conversationId,AMessenger.ALL_PAGES), params, String.class, this, "callbackPerformSendMessage");
     }
 
     @Override
@@ -263,7 +265,7 @@ public class ChatFragment extends Fragment{
                 String resultCaption = data.getStringExtra("resultCaption");
                 String fileUrl = data.getStringExtra("resultFilePath");
                 if (fileUrl!=null) {
-                    sendPost(resultCaption, new File(fileUrl), R.id.llProgress);
+                    sendPost(conversationId, resultCaption,null, null, fileUrl);
                 }
                 break;
         }

@@ -181,7 +181,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
             return;
         }
         String content = message.content.text;
-        if (TextUtils.isEmpty(content)){
+        if (!TextUtils.isEmpty(content)){
             aq.id(R.id.tvContent).text(content);
         }else {
             aq.id(R.id.tvContent).clear();
@@ -294,7 +294,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder>{
         this.messages.addAll(messages);
     }
     public void addItem(Message message){
-        messages.add(0,message);
+        messages.add(0, message);
     }
 
     public void clear(){

@@ -22,11 +22,10 @@ import static com.kaodim.messenger.tools.ExtraKeeper.EXTRA_OUTGOING_USER_ID;
 public abstract class MessengerActivity extends BaseBackButtonActivity implements ConversationsFragment.OnConversationFragmentListener, ChatFragment.OnChatFragmentListener {
 
     private final String TAG = getClass().getName();
-    protected abstract void getConversation(int page);
-    protected abstract void getMessages(String conversationId, int page);
     String outgoinUserId;
     protected ConversationsFragment conversationsFragment;
     protected ChatFragment chatFragment;
+
 
 
     @Override
@@ -42,15 +41,6 @@ public abstract class MessengerActivity extends BaseBackButtonActivity implement
         goToChat(groupId, conversationName);
     }
 
-    @Override
-    public void getConversationList(int page) {
-        getConversation(page);
-    }
-
-    @Override
-    public void getMessageList(String conversationId, int page) {
-        getMessages(conversationId, page);
-    }
     private void goToConversations(){
         setTitle(getString(R.string.messenger_title_conversation_activity));
         conversationsFragment = ConversationsFragment.newInstance();

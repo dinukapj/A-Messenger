@@ -52,7 +52,7 @@ public class ConversationsFragment extends Fragment implements SwipeRefreshLayou
 
     public interface OnConversationFragmentListener {
         void onConversationSelected(String groupId, String conversationName);
-        void getConversationList(int page);
+        void getConversations(int page);
     }
 
 
@@ -102,7 +102,7 @@ public class ConversationsFragment extends Fragment implements SwipeRefreshLayou
                             isLoading = true;
                             Log.v("...", "Last Item Wow !");
                             if (getActivity()!=null){
-                                ((OnConversationFragmentListener)getActivity()).getConversationList(currentPage + 1);
+                                ((OnConversationFragmentListener)getActivity()).getConversations(currentPage + 1);
                             }
 
                             adapter.updateFooter(true);
@@ -149,7 +149,7 @@ public class ConversationsFragment extends Fragment implements SwipeRefreshLayou
             isLoading=false;
             adapter.updateFooter(false);
         }
-        ((OnConversationFragmentListener)getActivity()).getConversationList(1);
+        ((OnConversationFragmentListener)getActivity()).getConversations(1);
     }
 
     private void refresh(){
