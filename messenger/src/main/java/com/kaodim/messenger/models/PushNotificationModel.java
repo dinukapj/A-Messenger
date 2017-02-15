@@ -5,11 +5,11 @@ package com.kaodim.messenger.models;
  */
 
 
-public class MessagePushModel {
+public class PushNotificationModel {
     public String conversationId;
     public String sender;
     public String message;
-    public MessagePushModel(String conversationId, String sender, String message){
+    public PushNotificationModel(String conversationId, String sender, String message){
         this.conversationId = conversationId;
         this.sender=sender;
         this.message=message;

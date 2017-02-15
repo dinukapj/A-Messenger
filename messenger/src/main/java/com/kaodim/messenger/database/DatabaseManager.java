@@ -6,7 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import com.kaodim.messenger.models.MessagePushModel;
+import com.kaodim.messenger.models.PushNotificationModel;
 
 import java.util.ArrayList;
 
@@ -49,7 +49,7 @@ public class DatabaseManager {
 
         }
     }
-    public static ArrayList<MessagePushModel>  insertMessage(MessagePushModel msg, Context context) {
+    public static ArrayList<PushNotificationModel>  insertMessage(PushNotificationModel msg, Context context) {
         SQLiteDatabase database = DatabaseManager.getInstance(context).openDatabase();
         ContentValues cv = new ContentValues();
         cv.put(SqlHelper.COLUMN_CONVERSATION_ID, msg.conversationId);
@@ -57,7 +57,7 @@ public class DatabaseManager {
         cv.put(SqlHelper.COLUMN_MESSAGE, msg.message);
         database.insert(SqlHelper.TABLE_NAME, null, cv);
 
-        ArrayList<MessagePushModel> messages = new ArrayList<>();
+        ArrayList<PushNotificationModel> messages = new ArrayList<>();
         Cursor cursor = database.query(SqlHelper.TABLE_NAME, new String[] { SqlHelper.COLUMN_CONVERSATION_ID,
                 SqlHelper.COLUMN_SENDER, SqlHelper.COLUMN_MESSAGE },null, null, null, null, null, null);
         if (cursor == null){
@@ -65,7 +65,7 @@ public class DatabaseManager {
         }
         cursor.moveToFirst();
         while(!cursor.isAfterLast()){
-            messages.add(new MessagePushModel(cursor.getString(0),
+            messages.add(new PushNotificationModel(cursor.getString(0),
                     cursor.getString(1), cursor.getString(2)));
             cursor.moveToNext();
         }

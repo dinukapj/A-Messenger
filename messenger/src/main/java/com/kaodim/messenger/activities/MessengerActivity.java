@@ -19,7 +19,7 @@ import static com.kaodim.messenger.tools.ExtraKeeper.EXTRA_OUTGOING_USER_ID;
 /**
  * Created by Kanskiy on 12/01/2017.
  */
-
+@Deprecated
 public abstract class MessengerActivity extends BaseBackButtonActivity implements ConversationsFragment.OnConversationFragmentListener, ChatFragment.OnChatFragmentListener {
 
     private final String TAG = getClass().getName();

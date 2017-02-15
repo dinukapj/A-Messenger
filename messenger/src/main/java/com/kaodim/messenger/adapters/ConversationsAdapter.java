@@ -24,7 +24,7 @@ import java.util.ArrayList;
 /**
  * Created by Kanskiy on 11/10/2016.
  */
-
+@Deprecated
 public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdapter.ViewHolder> {
     private final int TYPE_ITEM=1;
     private final int TYPE_FOOTER=2;
